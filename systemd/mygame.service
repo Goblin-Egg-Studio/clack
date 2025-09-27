@@ -1,0 +1,13 @@
+[Unit]
+Description=SpaceTimeDB Game Server
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/mygame
+ExecStart=/usr/bin/env bun server.ts
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+

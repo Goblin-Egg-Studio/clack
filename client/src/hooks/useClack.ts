@@ -1,0 +1,715 @@
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { ClackClient, Message, User, Room } from '../sdk/clackClient'
+import { soundService } from '../services/soundService'
+
+export function useClack() {
+  const [client] = useState(() => new ClackClient({
+    baseUrl: '',
+    autoReconnect: true
+  }))
+
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [currentChatUser, setCurrentChatUser] = useState<User | null>(null)
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [rooms, setRooms] = useState<Room[]>([])
+  const [userRooms, setUserRooms] = useState<Room[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
+  const [allMessages, setAllMessages] = useState<Map<string, Message[]>>(new Map()) // Store messages by user pair key
+  const [allRoomMessages, setAllRoomMessages] = useState<Map<number, Message[]>>(new Map()) // Store room messages by room ID
+  const [isConnected, setIsConnected] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
+  
+  // Pagination state
+  const [messagePagination, setMessagePagination] = useState<Map<string, { startIndex: number, hasMore: boolean }>>(new Map()) // Track pagination for each chat/room
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  // Refs to avoid stale closures
+  const currentChatUserRef = useRef<User | null>(null)
+  const currentUserRef = useRef<User | null>(null)
+
+  // Update refs when state changes
+  useEffect(() => {
+    currentChatUserRef.current = currentChatUser
+  }, [currentChatUser])
+
+  useEffect(() => {
+    currentUserRef.current = currentUser
+  }, [currentUser])
+
+  // Helper function to create a consistent key for user pairs
+  const getUserPairKey = (userA: number, userB: number): string => {
+    return userA < userB ? `${userA}-${userB}` : `${userB}-${userA}`
+  }
+
+  // Set up event listeners
+  useEffect(() => {
+    const handleNewMessage = (message: Message) => {
+      // Update the allMessages map
+      setAllMessages(prev => {
+        const newMap = new Map(prev)
+        const pairKey = getUserPairKey(message.user_a, message.user_b)
+        const conversationMessages = newMap.get(pairKey) || []
+        
+        // Check for duplicates (optimistic updates)
+        const exists = conversationMessages.some(msg => 
+          msg.content === message.content && 
+          msg.sender_id === message.sender_id &&
+          Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
+        )
+        
+        if (!exists) {
+          newMap.set(pairKey, [...conversationMessages, message])
+        }
+        
+        return newMap
+      })
+      
+      // Only add message to current view if it's for the current chat user
+      if (currentUserRef.current && currentChatUserRef.current && 
+          ((message.user_a === currentUserRef.current.id && message.user_b === currentChatUserRef.current.id) ||
+           (message.user_b === currentUserRef.current.id && message.user_a === currentChatUserRef.current.id))) {
+        setMessages(prev => {
+          // Check for duplicates (optimistic updates)
+          const exists = prev.some(msg => 
+            msg.content === message.content && 
+            msg.sender_id === message.sender_id &&
+            Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
+          )
+          if (!exists) {
+            return [...prev, message]
+          }
+          return prev
+        })
+      }
+
+      // Play sound notification for direct message (only if not from current user)
+      if (currentUserRef.current && message.sender_id !== currentUserRef.current.id) {
+        soundService.playNotification('dm')
+      }
+    }
+
+    const handleNewUser = (user: User) => {
+      setUsers(prev => {
+        const exists = prev.some(u => u.id === user.id)
+        if (!exists) {
+          return [...prev, user]
+        }
+        return prev
+      })
+    }
+
+    const handleInitialUsers = (users: User[]) => {
+      setUsers(users)
+    }
+
+        const handleInitialMessages = (messages: Message[]) => {
+          setAllMessages(prev => {
+            const newMap = new Map(prev)
+            // Group messages by user pairs
+            messages.forEach(message => {
+              const pairKey = getUserPairKey(message.user_a, message.user_b)
+              const existingMessages = newMap.get(pairKey) || []
+              newMap.set(pairKey, [...existingMessages, message])
+            })
+            return newMap
+          })
+        }
+
+        const handleNewRoom = (room: Room) => {
+          console.log('handleNewRoom called with:', room)
+          if (!room || !room.id) return
+          
+          setRooms(prev => {
+            const filtered = prev.filter(r => r && r.id)
+            const exists = filtered.some(r => r.id === room.id)
+            if (!exists) {
+              console.log('Adding new room to rooms list')
+              return [...filtered, room]
+            }
+            return filtered
+          })
+          
+          // If the current user created this room, add it to their userRooms
+          if (currentUserRef.current && room.created_by === currentUserRef.current.id) {
+            console.log('Adding room to userRooms for creator')
+            setUserRooms(prev => {
+              const filtered = prev.filter(r => r && r.id)
+              const exists = filtered.some(r => r.id === room.id)
+              if (!exists) {
+                return [...filtered, room]
+              }
+              return filtered
+            })
+          }
+
+          // Play sound notification for room creation (only if not created by current user)
+          if (currentUserRef.current && room.created_by !== currentUserRef.current.id) {
+            soundService.playNotification('room_created')
+          }
+        }
+
+        const handleRoomUpdated = (data: { room: Room, joinedUserId?: number }) => {
+          const { room, joinedUserId } = data
+          if (!room || !room.id) return
+          
+          setRooms(prev => {
+            const filtered = prev.filter(r => r && r.id)
+            return filtered.map(r => r.id === room.id ? room : r)
+          })
+          
+          // Only add room to userRooms if the current user is the one who joined
+          if (currentUserRef.current && joinedUserId === currentUserRef.current.id) {
+            setUserRooms(prev => {
+              const filtered = prev.filter(r => r && r.id)
+              const existingRoom = filtered.find(r => r.id === room.id)
+              if (existingRoom) {
+                // Update existing room
+                return filtered.map(r => r.id === room.id ? room : r)
+              } else {
+                // Add new room to user's rooms (user joined)
+                return [...filtered, room]
+              }
+            })
+          }
+        }
+
+        const handleRoomOwnerChanged = (data: { room: Room, oldOwnerId: number, newOwnerId: number }) => {
+          const { room, oldOwnerId, newOwnerId } = data
+          if (!room || !room.id) return
+          
+          console.log('useClack: Room owner changed:', { room: room.name, oldOwnerId, newOwnerId })
+          
+          // Update the room in the rooms list
+          setRooms(prev => {
+            const filtered = prev.filter(r => r && r.id)
+            return filtered.map(r => r.id === room.id ? room : r)
+          })
+          
+          // Update user rooms if the current user is involved
+          if (currentUserRef.current && (currentUserRef.current.id === oldOwnerId || currentUserRef.current.id === newOwnerId)) {
+            setUserRooms(prev => {
+              const filtered = prev.filter(r => r && r.id)
+              return filtered.map(r => r.id === room.id ? room : r)
+            })
+          }
+        }
+
+        const handleRoomDeleted = (data: { roomId: number, deletedBy: number }) => {
+          const { roomId } = data
+          
+          console.log('useClack: Room deleted:', roomId)
+          
+          // Remove room from all lists
+          setRooms(prev => prev.filter(r => r && r.id !== roomId))
+          setUserRooms(prev => prev.filter(r => r && r.id !== roomId))
+          
+          // Clear room messages if this was the current room
+          if (currentRoomRef.current && currentRoomRef.current.id === roomId) {
+            setCurrentRoom(null)
+            setMessages([])
+            setAllRoomMessages(prev => {
+              const newMap = new Map(prev)
+              newMap.delete(roomId)
+              return newMap
+            })
+          }
+        }
+
+        const handleInitialRooms = (rooms: Room[]) => {
+          if (Array.isArray(rooms)) {
+            setRooms(rooms.filter(room => room && room.id))
+          }
+        }
+
+        const handleInitialUserRooms = (rooms: Room[]) => {
+          if (Array.isArray(rooms)) {
+            setUserRooms(rooms.filter(room => room && room.id))
+          }
+        }
+
+        const handleInitialRoomMessages = (data: { roomId: number, messages: Message[] }) => {
+          setAllRoomMessages(prev => {
+            const newMap = new Map(prev)
+            newMap.set(data.roomId, data.messages)
+            return newMap
+          })
+        }
+
+        const handleNewRoomMessage = (message: Message) => {
+          setAllRoomMessages(prev => {
+            const newMap = new Map(prev)
+            const roomMessages = newMap.get(message.room_id!) || []
+            
+            // Check for duplicates (optimistic updates)
+            const exists = roomMessages.some(msg => 
+              msg.content === message.content && 
+              msg.sender_id === message.sender_id &&
+              Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
+            )
+            
+            if (!exists) {
+              newMap.set(message.room_id!, [...roomMessages, message])
+            }
+            
+            return newMap
+          })
+          
+          // Only add message to current view if it's for the current room
+          if (currentRoom && message.room_id === currentRoom.id) {
+            setMessages(prev => {
+              // Check for duplicates (optimistic updates)
+              const exists = prev.some(msg => 
+                msg.content === message.content && 
+                msg.sender_id === message.sender_id &&
+                Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
+              )
+              if (!exists) {
+                return [...prev, message]
+              }
+              return prev
+            })
+          }
+
+          // Play sound notification for room message (only if not from current user)
+          if (currentUserRef.current && message.sender_id !== currentUserRef.current.id) {
+            soundService.playNotification('room_message')
+          }
+        }
+
+    const handleConnectionOpen = () => {
+      setIsConnected(true)
+    }
+
+    const handleConnectionClose = () => {
+      setIsConnected(false)
+    }
+
+        // Register event listeners
+        client.on('message:new', handleNewMessage)
+        client.on('user:new', handleNewUser)
+        client.on('users:initial', handleInitialUsers)
+        client.on('messages:initial', handleInitialMessages)
+        client.on('room:new', handleNewRoom)
+        client.on('room:updated', handleRoomUpdated)
+        client.on('room:owner_changed', handleRoomOwnerChanged)
+        client.on('room:deleted', handleRoomDeleted)
+        client.on('rooms:initial', handleInitialRooms)
+        client.on('user_rooms:initial', handleInitialUserRooms)
+        client.on('room_messages:initial', handleInitialRoomMessages)
+        client.on('room_message:new', handleNewRoomMessage)
+        client.on('connection:open', handleConnectionOpen)
+        client.on('connection:close', handleConnectionClose)
+
+        return () => {
+          client.off('message:new', handleNewMessage)
+          client.off('user:new', handleNewUser)
+          client.off('users:initial', handleInitialUsers)
+          client.off('messages:initial', handleInitialMessages)
+          client.off('room:new', handleNewRoom)
+          client.off('room:updated', handleRoomUpdated)
+          client.off('room:owner_changed', handleRoomOwnerChanged)
+          client.off('room:deleted', handleRoomDeleted)
+          client.off('rooms:initial', handleInitialRooms)
+          client.off('user_rooms:initial', handleInitialUserRooms)
+          client.off('room_messages:initial', handleInitialRoomMessages)
+          client.off('room_message:new', handleNewRoomMessage)
+          client.off('connection:open', handleConnectionOpen)
+          client.off('connection:close', handleConnectionClose)
+          client.disconnect()
+        }
+  }, [client])
+
+  // Service methods
+  const loadMessages = useCallback(async (otherUserId: number) => {
+    if (!currentUser) return
+    
+    try {
+      setIsLoading(true)
+      const pairKey = getUserPairKey(currentUser.id, otherUserId)
+      
+      // Check if we already have messages for this chat
+      const existingMessages = allMessages.get(pairKey) || []
+      if (existingMessages.length > 0) {
+        setMessages(existingMessages)
+        setIsLoading(false)
+        return
+      }
+      
+      // Load first page of messages
+      const messages = await client.getMessagesPage(currentUser.id, 0, 10)
+      
+      // Store messages in allMessages map
+      setAllMessages(prev => {
+        const newMap = new Map(prev)
+        newMap.set(pairKey, messages)
+        return newMap
+      })
+      
+      setMessages(messages)
+      
+      // Update pagination state
+      setMessagePagination(prev => {
+        const newMap = new Map(prev)
+        newMap.set(pairKey, { startIndex: messages.length, hasMore: messages.length === 10 })
+        return newMap
+      })
+      
+    } catch (error) {
+      console.error('Failed to load messages:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [allMessages, currentUser, client])
+
+  const loadMoreMessages = useCallback(async () => {
+    if (!currentUser || !currentChatUser || isLoadingMore) return
+    
+    try {
+      setIsLoadingMore(true)
+      const pairKey = getUserPairKey(currentUser.id, currentChatUser.id)
+      const pagination = messagePagination.get(pairKey)
+      
+      if (!pagination || !pagination.hasMore) {
+        return
+      }
+      
+      // Load next page of messages
+      const newMessages = await client.getMessagesPage(currentUser.id, pagination.startIndex, 10)
+      
+      if (newMessages.length === 0) {
+        // No more messages
+        setMessagePagination(prev => {
+          const newMap = new Map(prev)
+          newMap.set(pairKey, { ...pagination, hasMore: false })
+          return newMap
+        })
+        return
+      }
+      
+      // Prepend new messages to existing ones (older messages go first)
+      setAllMessages(prev => {
+        const newMap = new Map(prev)
+        const existingMessages = newMap.get(pairKey) || []
+        newMap.set(pairKey, [...newMessages, ...existingMessages])
+        return newMap
+      })
+      
+      setMessages(prev => [...newMessages, ...prev])
+      
+      // Update pagination state
+      setMessagePagination(prev => {
+        const newMap = new Map(prev)
+        newMap.set(pairKey, { 
+          startIndex: pagination.startIndex + newMessages.length, 
+          hasMore: newMessages.length === 10 
+        })
+        return newMap
+      })
+      
+    } catch (error) {
+      console.error('Failed to load more messages:', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [currentUser, currentChatUser, messagePagination, isLoadingMore, client])
+
+  const sendMessage = useCallback(async (content: string): Promise<void> => {
+    if (!currentUser || !currentChatUser) return
+
+    setIsSendingMessage(true)
+    
+    try {
+      await client.sendMessage(currentUser.id, currentChatUser.id, content)
+      // Message will come via SSE
+    } catch (error) {
+      throw error
+    } finally {
+      setIsSendingMessage(false)
+    }
+  }, [client, currentUser, currentChatUser])
+
+  const startChat = useCallback(async (otherUserId: number): Promise<void> => {
+    if (!currentUser) return
+
+    try {
+      console.log('Starting chat with user ID:', otherUserId)
+      console.log('Available users:', users)
+      
+      // Find the other user
+      const otherUser = users.find(u => u.id === otherUserId)
+      if (!otherUser) {
+        console.error('User not found. Available users:', users.map(u => ({ id: u.id, username: u.username })))
+        throw new Error(`User with ID ${otherUserId} not found`)
+      }
+      
+      setCurrentChatUser(otherUser)
+      
+      // Load messages for this chat
+      await loadMessages(otherUserId)
+    } catch (error) {
+      console.error('Failed to start chat:', error)
+      throw error
+    }
+  }, [currentUser, users, loadMessages])
+
+  const selectChat = useCallback(async (otherUser: User): Promise<void> => {
+    setCurrentChatUser(otherUser)
+    
+    // Use pre-loaded messages if available, otherwise load them
+    const pairKey = getUserPairKey(currentUser?.id || 0, otherUser.id)
+    const preloadedMessages = allMessages.get(pairKey)
+    if (preloadedMessages) {
+      setMessages(preloadedMessages)
+    } else {
+      await loadMessages(otherUser.id)
+    }
+  }, [allMessages, loadMessages, currentUser])
+
+      const createRoom = useCallback(async (name: string, description: string): Promise<Room> => {
+        if (!currentUser) throw new Error('User not authenticated')
+        
+        setIsLoading(true)
+        try {
+          const room = await client.createRoom(name, description, currentUser.id)
+          return room
+        } finally {
+          setIsLoading(false)
+        }
+      }, [client, currentUser])
+
+      const joinRoom = useCallback(async (roomId: number): Promise<boolean> => {
+        if (!currentUser) throw new Error('User not authenticated')
+        
+        setIsLoading(true)
+        try {
+          const success = await client.joinRoom(roomId, currentUser.id)
+          return success
+        } finally {
+          setIsLoading(false)
+        }
+      }, [client, currentUser])
+
+      const leaveRoom = useCallback(async (roomId: number): Promise<boolean> => {
+        if (!currentUser) throw new Error('User not authenticated')
+        
+        setIsLoading(true)
+        try {
+          const success = await client.leaveRoom(roomId, currentUser.id)
+          return success
+        } finally {
+          setIsLoading(false)
+        }
+      }, [client, currentUser])
+
+      const selectRoom = useCallback(async (room: Room): Promise<void> => {
+        setCurrentRoom(room)
+        setCurrentChatUser(null) // Clear direct chat when selecting room
+        
+        try {
+          setIsLoading(true)
+          
+          // Check if we already have messages for this room
+          const existingMessages = allRoomMessages.get(room.id) || []
+          if (existingMessages.length > 0) {
+            setMessages(existingMessages)
+            setIsLoading(false)
+            return
+          }
+          
+          // Load first page of room messages
+          const messages = await client.getRoomMessagesPage(room.id, 0, 10)
+          
+          // Store messages in allRoomMessages map
+          setAllRoomMessages(prev => {
+            const newMap = new Map(prev)
+            newMap.set(room.id, messages)
+            return newMap
+          })
+          
+          setMessages(messages)
+          
+          // Update pagination state for room
+          const roomKey = `room_${room.id}`
+          setMessagePagination(prev => {
+            const newMap = new Map(prev)
+            newMap.set(roomKey, { startIndex: messages.length, hasMore: messages.length === 10 })
+            return newMap
+          })
+          
+        } catch (error) {
+          console.error('Failed to load room messages:', error)
+        } finally {
+          setIsLoading(false)
+        }
+      }, [allRoomMessages, client])
+
+      const loadMoreRoomMessages = useCallback(async () => {
+        if (!currentRoom || isLoadingMore) return
+        
+        try {
+          setIsLoadingMore(true)
+          const roomKey = `room_${currentRoom.id}`
+          const pagination = messagePagination.get(roomKey)
+          
+          if (!pagination || !pagination.hasMore) {
+            return
+          }
+          
+          // Load next page of room messages
+          const newMessages = await client.getRoomMessagesPage(currentRoom.id, pagination.startIndex, 10)
+          
+          if (newMessages.length === 0) {
+            // No more messages
+            setMessagePagination(prev => {
+              const newMap = new Map(prev)
+              newMap.set(roomKey, { ...pagination, hasMore: false })
+              return newMap
+            })
+            return
+          }
+          
+          // Prepend new messages to existing ones (older messages go first)
+          setAllRoomMessages(prev => {
+            const newMap = new Map(prev)
+            const existingMessages = newMap.get(currentRoom.id) || []
+            newMap.set(currentRoom.id, [...newMessages, ...existingMessages])
+            return newMap
+          })
+          
+          setMessages(prev => [...newMessages, ...prev])
+          
+          // Update pagination state
+          setMessagePagination(prev => {
+            const newMap = new Map(prev)
+            newMap.set(roomKey, { 
+              startIndex: pagination.startIndex + newMessages.length, 
+              hasMore: newMessages.length === 10 
+            })
+            return newMap
+          })
+          
+        } catch (error) {
+          console.error('Failed to load more room messages:', error)
+        } finally {
+          setIsLoadingMore(false)
+        }
+      }, [currentRoom, messagePagination, isLoadingMore, client])
+
+      const changeRoomOwner = useCallback(async (roomId: number, newOwnerId: number): Promise<boolean> => {
+        if (!currentUser) return false
+
+        try {
+          await client.changeRoomOwner(roomId, newOwnerId, currentUser.id)
+          return true
+        } catch (error) {
+          console.error('Failed to change room owner:', error)
+          throw error
+        }
+      }, [client, currentUser])
+
+      const deleteRoom = useCallback(async (roomId: number): Promise<boolean> => {
+        if (!currentUser) return false
+
+        try {
+          await client.deleteRoom(roomId, currentUser.id)
+          return true
+        } catch (error) {
+          console.error('Failed to delete room:', error)
+          throw error
+        }
+      }, [client, currentUser])
+
+      const sendRoomMessage = useCallback(async (content: string): Promise<void> => {
+        if (!currentUser || !currentRoom) return
+
+        setIsSendingMessage(true)
+        
+        try {
+          await client.sendRoomMessage(currentUser.id, currentRoom.id, content)
+          // Message will come via SSE
+        } catch (error) {
+          throw error
+        } finally {
+          setIsSendingMessage(false)
+        }
+      }, [client, currentUser, currentRoom])
+
+      const authenticate = useCallback(async (token: string, user: User): Promise<void> => {
+        client.setToken(token)
+        setCurrentUser(user)
+        client.connect()
+        
+        // Load initial data using MCP getters (only users and rooms, not messages)
+        try {
+          console.log('Loading initial data...')
+          
+          // Load users, rooms, and user's rooms
+          const [users, rooms, userRooms] = await Promise.all([
+            client.getAllUsers(),
+            client.getAllRooms(),
+            client.getUserRooms(user.id)
+          ])
+          
+          console.log('useClack: Loaded users:', users.length)
+          console.log('useClack: Loaded rooms:', rooms.length, rooms)
+          console.log('useClack: Loaded user rooms:', userRooms.length, userRooms)
+          
+          setUsers(users)
+          setRooms(rooms)
+          setUserRooms(userRooms)
+          
+          // For now, set empty arrays for messages
+          // These will be populated when user opens specific chats/rooms
+          setMessages([])
+          
+          console.log('Initial data loaded successfully')
+        } catch (error) {
+          console.error('Failed to load initial data:', error)
+        }
+      }, [client])
+
+  // Auto-load messages when chat user changes
+  useEffect(() => {
+    if (currentChatUser && currentUser) {
+      loadMessages(currentChatUser.id)
+    }
+  }, [currentChatUser, currentUser, loadMessages])
+
+      return {
+        // State
+        currentUser,
+        currentChatUser,
+        currentRoom,
+        users,
+        rooms,
+        userRooms,
+        messages,
+        allMessages,
+        allRoomMessages,
+        isConnected,
+        isLoading,
+        isSendingMessage,
+        isLoadingMore,
+        
+        // Actions
+        sendMessage,
+        startChat,
+        selectChat,
+        createRoom,
+        joinRoom,
+        leaveRoom,
+        selectRoom,
+        sendRoomMessage,
+        authenticate,
+        loadMessages,
+        loadMoreMessages,
+        loadMoreRoomMessages,
+        changeRoomOwner,
+        deleteRoom,
+        
+        // Client
+        client
+      }
+}

@@ -1,0 +1,33 @@
+name: Deploy to Linode
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: SSH Deploy to Linode
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LINODE_HOST }}
+          username: ${{ secrets.LINODE_USER }}
+          key: ${{ secrets.LINODE_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/mygame
+            git pull
+            ./scripts/fetch-spacetimedb.sh
+            bun install --no-progress
+            bun run build
+            sudo systemctl restart mygame
+
+
+
+
