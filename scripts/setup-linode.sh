@@ -27,11 +27,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if running as root
-if [[ $EUID -eq 0 ]]; then
-    print_error "This script should not be run as root. Please run as a regular user with sudo privileges."
-    exit 1
-fi
+# Allow running as root (commands use sudo appropriately)
 
 print_status "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
@@ -39,13 +35,12 @@ sudo apt update && sudo apt upgrade -y
 print_status "Installing required packages..."
 sudo apt install -y curl git nginx certbot python3-certbot-nginx ufw
 
-print_status "Installing Bun..."
-curl -fsSL https://bun.sh/install | bash
-source ~/.bashrc
-
 print_status "Creating clack user..."
 sudo useradd -m -s /bin/bash clack || true
 sudo usermod -aG sudo clack
+
+print_status "Installing Bun for clack user..."
+sudo -u clack bash -lc 'curl -fsSL https://bun.sh/install | bash'
 
 print_status "Setting up project directory..."
 sudo mkdir -p /opt/clack
@@ -55,11 +50,10 @@ print_status "Cloning repository..."
 sudo -u clack git clone https://github.com/Goblin-Egg-Studio/clack.git /opt/clack
 
 print_status "Installing project dependencies..."
-cd /opt/clack
-sudo -u clack bun install
+sudo -u clack bash -lc 'cd /opt/clack && bun install'
 
 print_status "Building the application..."
-sudo -u clack bun run build
+sudo -u clack bash -lc 'cd /opt/clack && bun run build'
 
 print_status "Setting up systemd service..."
 sudo cp systemd/mygame.service /etc/systemd/system/clack.service
@@ -106,6 +100,8 @@ Environment=JWT_SECRET=change-this-jwt-secret-in-production
 Environment=DATABASE_URL=./chat.db
 Environment=CORS_ORIGIN=https://your-domain.com
 EOF
+
+sudo systemctl daemon-reload
 
 print_status "Starting services..."
 sudo systemctl start clack
