@@ -19,38 +19,59 @@ jobs:
           pip install linode-cli
           echo "✅ Linode CLI installed"
 
-      - name: Deploy to Linode via API
-        env:
-          LINODE_CLI_TOKEN: ${{ secrets.LINODE_API_TOKEN }}
-          LINODE_CLI_REGION: us-east
+      - name: Get Linode IP
+        id: get-ip
         run: |
-          echo "🚀 Starting deployment via Linode API..."
-          
-          # Configure Linode CLI using environment variables
-          echo "🔧 Configuring Linode CLI..."
-          export LINODE_CLI_TOKEN="${{ secrets.LINODE_API_TOKEN }}"
-          export LINODE_CLI_REGION="us-east"
-          
-          # Deploy code via Linode API
-          echo "📥 Pulling latest changes..."
-          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "cd /opt/clack && git pull origin main"
-          
-          echo "📦 Installing dependencies..."
-          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "cd /opt/clack && bun install --no-progress --frozen-lockfile"
-          
-          echo "🔨 Building application..."
-          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "cd /opt/clack && bun run build"
-          
-          echo "🔄 Restarting service..."
-          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "sudo systemctl restart clack"
-          
-          echo "✅ Checking service status..."
-          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "sudo systemctl status clack --no-pager"
-          
+          echo "🔍 Getting Linode instance IP..."
+          LINODE_IP=$(curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
+            "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}" | \
+            jq -r '.ipv4[0]')
+          echo "ip=$LINODE_IP" >> $GITHUB_OUTPUT
+          echo "📍 Linode IP: $LINODE_IP"
+
+      - name: Deploy to Linode
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ steps.get-ip.outputs.ip }}
+          username: clack
+          key: ${{ secrets.LINODE_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to project directory
+            cd /opt/clack
+            
+            # Pull latest changes
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+            
+            # Install dependencies
+            echo "📦 Installing dependencies..."
+            bun install --no-progress --frozen-lockfile
+            
+            # Build the application
+            echo "🔨 Building application..."
+            bun run build
+            
+            # Restart the service
+            echo "🔄 Restarting service..."
+            sudo systemctl restart clack
+            
+            # Check service status
+            echo "✅ Checking service status..."
+            sudo systemctl status clack --no-pager
+            
+            echo "🎉 Deployment completed successfully!"
+
+      - name: Restart Linode Instance
+        run: |
           echo "🔄 Restarting Linode instance..."
-          linode-cli linodes reboot ${{ secrets.LINODE_INSTANCE_ID }}
-          
-          echo "🎉 Deployment completed successfully!"
+          curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
+            -X POST \
+            "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}/reboot"
+          echo "✅ Linode instance restart initiated"
 
 
 

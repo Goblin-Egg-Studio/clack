@@ -98,6 +98,7 @@ Click "New repository secret" and add:
 **Add these secrets:**
 - LINODE_API_TOKEN (your Linode API token from dashboard)
 - LINODE_INSTANCE_ID (your Linode instance ID)
+- LINODE_SSH_KEY (your private SSH key for the clack user)
 
 **To get your Linode API token:**
 1. Go to [Linode Dashboard](https://cloud.linode.com)
