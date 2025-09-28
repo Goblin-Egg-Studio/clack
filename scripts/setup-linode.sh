@@ -33,7 +33,7 @@ print_status "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
 print_status "Installing required packages..."
-sudo apt install -y curl git nginx certbot python3-certbot-nginx ufw
+sudo apt install -y curl git nginx certbot python3-certbot-nginx ufw unzip
 
 print_status "Creating clack user..."
 sudo useradd -m -s /bin/bash clack || true
