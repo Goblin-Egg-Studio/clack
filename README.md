@@ -76,35 +76,36 @@ chmod +x scripts/setup-linode.sh
 ./scripts/setup-linode.sh
 ```
 
-2) Set GitHub repository secrets
-Go to your GitHub repo → Settings → Secrets and variables → Actions → Repository secrets
-Click "New repository secret" and add:
-
-**Set up SSH access:**
+2) Set up SSH access
 ```bash
-# 1. Check if you have SSH keys, generate if needed
+# Check if you have SSH keys, generate if needed
 ls ~/.ssh/id_*
 
 # If no keys exist, generate one:
 ssh-keygen -t ed25519 -C "your-email@example.com"
 # (Press Enter for all prompts to use defaults)
+```
 
-# 2. Copy your public key (use whichever exists)
+3) Give Linode your public key
+```bash
+# Copy your public key (use whichever exists)
 cat ~/.ssh/id_ed25519.pub
 # OR if you only have RSA:
 # cat ~/.ssh/id_rsa.pub
-```
 
-```bash
-# 3. On your Linode server, add the public key
+# On your Linode server, add the public key
 sudo -u clack mkdir -p /home/clack/.ssh
 echo "YOUR_PUBLIC_KEY_CONTENT" | sudo -u clack tee -a /home/clack/.ssh/authorized_keys
 sudo chmod 600 /home/clack/.ssh/authorized_keys
 sudo chown clack:clack /home/clack/.ssh/authorized_keys
 ```
 
+4) Set GitHub repository secrets
+Go to your GitHub repo → Settings → Secrets and variables → Actions → Repository secrets
+Click "New repository secret" and add:
+
 ```bash
-# 4. Copy your private key for GitHub secrets
+# Copy your private key for GitHub secrets
 cat ~/.ssh/id_ed25519
 # OR if you only have RSA:
 # cat ~/.ssh/id_rsa
@@ -116,7 +117,7 @@ cat ~/.ssh/id_ed25519
 - LINODE_SSH_KEY (paste the entire private key content from above)
 - LINODE_PORT (`22` - optional)
 
-3) Set up domain (optional)
+5) Set up domain (optional)
 If you have a domain, configure it:
 
 **In your domain registrar (GoDaddy, Namecheap, etc.):**
