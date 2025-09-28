@@ -65,7 +65,7 @@ make deploy-check
 
 ### Automated Deployment
 
-This project uses GitHub Actions for automatic deployment to Linode. Do these three steps:
+This project uses GitHub Actions for automatic deployment to Linode. Do these two steps:
 
 1) Setup Clack on Linode
 ```bash
@@ -76,25 +76,7 @@ chmod +x scripts/setup-linode.sh
 ./scripts/setup-linode.sh
 ```
 
-2) Set environment variables on Linode
-```bash
-sudo nano /etc/systemd/system/clack.service
-# Ensure these lines exist/are set:
-# Environment=NODE_ENV=production
-# Environment=PORT=3000
-# Environment=JWT_SECRET=your-secret
-# Environment=CORS_ORIGIN=https://yourdomain.com
-sudo systemctl daemon-reload && sudo systemctl restart clack
-```
-
-Note: Update Nginx domain too:
-```bash
-sudo nano /etc/nginx/sites-available/clack
-# set: server_name your-domain.com www.your-domain.com;
-sudo nginx -t && sudo systemctl restart nginx
-```
-
-3) Set GitHub secrets
+2) Set GitHub secrets
 - LINODE_HOST (server IP)
 - LINODE_USER (e.g. clack)
 - LINODE_SSH_KEY (private key content)
