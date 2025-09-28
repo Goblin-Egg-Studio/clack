@@ -7,6 +7,8 @@ echo "🔨 Building Clack Chat App..."
 echo "📦 Building React client..."
 cd client
 bun run build
+# Copy HTML file to dist directory
+cp index.html dist/index.html
 echo "✅ Client built successfully"
 
 echo "🎉 Build complete! Ready to run:"
