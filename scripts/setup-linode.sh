@@ -59,6 +59,9 @@ fi
 print_status "Installing project dependencies..."
 sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun install'
 
+print_status "Installing client dependencies..."
+sudo -u clack bash -lc 'cd /opt/clack/client && export PATH="$HOME/.bun/bin:$PATH" && bun install'
+
 print_status "Building the application..."
 sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun run build'
 
