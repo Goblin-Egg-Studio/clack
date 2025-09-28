@@ -27,36 +27,85 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check if a service is running
+service_running() {
+    systemctl is-active --quiet "$1"
+}
+
+# Function to check if a port is open
+port_open() {
+    ss -tlnp | grep -q ":$1 "
+}
+
 # Allow running as root (commands use sudo appropriately)
 
 print_status "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
 print_status "Installing required packages..."
-sudo apt install -y curl git nginx certbot python3-certbot-nginx ufw unzip
+# Check if packages are already installed
+REQUIRED_PACKAGES="curl git nginx certbot python3-certbot-nginx ufw unzip"
+for package in $REQUIRED_PACKAGES; do
+    if ! dpkg -l | grep -q "^ii  $package "; then
+        print_status "Installing $package..."
+        sudo apt install -y "$package"
+    else
+        print_status "$package already installed"
+    fi
+done
 
 print_status "Creating clack user..."
-sudo useradd -m -s /bin/bash clack || true
-sudo usermod -aG sudo clack
+if ! id "clack" &>/dev/null; then
+    sudo useradd -m -s /bin/bash clack
+    print_status "Created clack user"
+else
+    print_status "clack user already exists"
+fi
+
+# Ensure clack user is in sudo group
+if ! groups clack | grep -q sudo; then
+    sudo usermod -aG sudo clack
+    print_status "Added clack to sudo group"
+else
+    print_status "clack already in sudo group"
+fi
+
 # Ensure home directory exists and has proper permissions
 sudo mkdir -p /home/clack/.ssh
 sudo chown clack:clack /home/clack
 sudo chown clack:clack /home/clack/.ssh
 
 print_status "Installing Bun for clack user..."
-sudo -u clack bash -lc 'curl -fsSL https://bun.sh/install | bash'
+if ! sudo -u clack bash -lc 'command -v bun >/dev/null 2>&1'; then
+    sudo -u clack bash -lc 'curl -fsSL https://bun.sh/install | bash'
+    print_status "Installed Bun"
+else
+    print_status "Bun already installed"
+fi
+
 # Ensure Bun is in PATH for clack user
-sudo -u clack bash -lc 'echo "export PATH=\"\$HOME/.bun/bin:\$PATH\"" >> ~/.bashrc'
+if ! sudo -u clack bash -lc 'echo $PATH' | grep -q ".bun/bin"; then
+    sudo -u clack bash -lc 'echo "export PATH=\"\$HOME/.bun/bin:\$PATH\"" >> ~/.bashrc'
+    print_status "Added Bun to PATH"
+else
+    print_status "Bun already in PATH"
+fi
 
 print_status "Setting up project directory..."
 sudo mkdir -p /opt/clack
 sudo chown clack:clack /opt/clack
 
-print_status "Cloning repository..."
+print_status "Cloning/updating repository..."
 if [ -d "/opt/clack/.git" ]; then
-    print_status "Repository already exists, updating..."
+    print_status "Repository exists, updating..."
     sudo -u clack bash -lc 'cd /opt/clack && git pull'
 else
+    print_status "Cloning repository..."
     sudo -u clack git clone https://github.com/Goblin-Egg-Studio/clack.git /opt/clack
 fi
 
@@ -70,12 +119,21 @@ print_status "Building the application..."
 sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun run build'
 
 print_status "Setting up systemd service..."
-sudo cp systemd/mygame.service /etc/systemd/system/clack.service
+# Check if service file exists and is different
+if [ ! -f "/etc/systemd/system/clack.service" ] || ! cmp -s "systemd/mygame.service" "/etc/systemd/system/clack.service"; then
+    sudo cp systemd/mygame.service /etc/systemd/system/clack.service
+    print_status "Updated systemd service file"
+else
+    print_status "Systemd service file already up to date"
+fi
+
 sudo systemctl daemon-reload
 sudo systemctl enable clack
 
 print_status "Configuring nginx..."
-sudo tee /etc/nginx/sites-available/clack > /dev/null << 'EOF'
+# Check if nginx config is different
+if [ ! -f "/etc/nginx/sites-available/clack" ] || ! grep -q "proxy_pass http://localhost:3000" /etc/nginx/sites-available/clack; then
+    sudo tee /etc/nginx/sites-available/clack > /dev/null << 'EOF'
 server {
     listen 80;
     server_name _;  # Replace with your domain name
@@ -93,52 +151,104 @@ server {
     }
 }
 EOF
+    print_status "Updated nginx configuration"
+else
+    print_status "Nginx configuration already up to date"
+fi
 
 sudo ln -sf /etc/nginx/sites-available/clack /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl restart nginx
+
+# Test nginx configuration
+if sudo nginx -t; then
+    print_status "Nginx configuration is valid"
+    sudo systemctl restart nginx
+else
+    print_error "Nginx configuration is invalid"
+    exit 1
+fi
 
 print_status "Configuring SSH on custom port..."
 # Use environment variable or generate a random high port
 if [ -z "${SSH_PORT:-}" ]; then
-    # Generate a random port between 30000-65000
-    SSH_PORT=$((30000 + RANDOM % 35000))
-    print_status "Generated random SSH port: $SSH_PORT"
+    # Check if SSH port is already configured
+    if grep -q "^Port " /etc/ssh/sshd_config && ! grep -q "^Port 22" /etc/ssh/sshd_config; then
+        SSH_PORT=$(grep "^Port " /etc/ssh/sshd_config | awk '{print $2}')
+        print_status "Using existing SSH port: $SSH_PORT"
+    else
+        # Generate a random port between 30000-65000
+        SSH_PORT=$((30000 + RANDOM % 35000))
+        print_status "Generated random SSH port: $SSH_PORT"
+    fi
 else
     print_status "Using provided SSH port: $SSH_PORT"
 fi
 
-# Backup original SSH config
-sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+# Backup original SSH config if not already backed up
+if [ ! -f "/etc/ssh/sshd_config.backup" ]; then
+    sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+    print_status "Backed up original SSH config"
+fi
 
 # Configure SSH to use custom port
-sudo sed -i "s/#Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
-sudo sed -i "s/Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
+if ! grep -q "^Port $SSH_PORT" /etc/ssh/sshd_config; then
+    sudo sed -i "s/#Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
+    sudo sed -i "s/Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
+    print_status "Updated SSH port to $SSH_PORT"
+else
+    print_status "SSH port already configured as $SSH_PORT"
+fi
 
 # Restart SSH service
 sudo systemctl restart sshd
 
 print_status "Configuring firewall..."
-sudo ufw allow $SSH_PORT/tcp
-sudo ufw allow 'Nginx Full'
+# Check if port is already allowed
+if ! sudo ufw status | grep -q "$SSH_PORT/tcp"; then
+    sudo ufw allow $SSH_PORT/tcp
+    print_status "Added SSH port $SSH_PORT to firewall"
+else
+    print_status "SSH port $SSH_PORT already allowed in firewall"
+fi
+
+# Check if Nginx is already allowed
+if ! sudo ufw status | grep -q "Nginx Full"; then
+    sudo ufw allow 'Nginx Full'
+    print_status "Added Nginx to firewall"
+else
+    print_status "Nginx already allowed in firewall"
+fi
+
 sudo ufw --force enable
 
 print_status "Configuring environment variables..."
-# Update systemd service with environment variables
-sudo sed -i '/^Environment=/d' /etc/systemd/system/clack.service
-sudo tee -a /etc/systemd/system/clack.service > /dev/null << 'EOF'
+# Check if environment variables are already configured
+if ! grep -q "Environment=NODE_ENV=production" /etc/systemd/system/clack.service; then
+    sudo sed -i '/^Environment=/d' /etc/systemd/system/clack.service
+    sudo tee -a /etc/systemd/system/clack.service > /dev/null << 'EOF'
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=JWT_SECRET=change-this-jwt-secret-in-production
 Environment=DATABASE_URL=./chat.db
 Environment=CORS_ORIGIN=https://your-domain.com
 EOF
+    print_status "Added environment variables to systemd service"
+else
+    print_status "Environment variables already configured"
+fi
 
 sudo systemctl daemon-reload
 
 print_status "Starting services..."
-sudo systemctl start clack
+# Start clack service if not already running
+if ! service_running clack; then
+    sudo systemctl start clack
+    print_status "Started clack service"
+else
+    print_status "Clack service already running"
+fi
+
+# Show service status
 sudo systemctl status clack --no-pager
 
 print_success "Setup completed! 🎉"
