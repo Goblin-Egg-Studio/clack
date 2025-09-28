@@ -199,8 +199,18 @@ else
     print_status "SSH port already configured as $SSH_PORT"
 fi
 
-# Restart SSH service
-sudo systemctl restart sshd
+# Restart SSH service (try different service names)
+if systemctl list-units --type=service | grep -q sshd; then
+    sudo systemctl restart sshd
+    print_status "Restarted sshd service"
+elif systemctl list-units --type=service | grep -q ssh; then
+    sudo systemctl restart ssh
+    print_status "Restarted ssh service"
+else
+    print_warning "Could not find SSH service to restart automatically."
+    print_warning "Please restart SSH manually: sudo systemctl restart sshd"
+    print_warning "Or try: sudo systemctl restart ssh"
+fi
 
 print_status "Configuring firewall..."
 # Check if port is already allowed
