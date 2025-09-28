@@ -95,6 +95,9 @@ function AppContent() {
       <div className="min-h-screen bg-gray-50">
         {/* Connection Status and Logout */}
         <div className="fixed top-4 right-4 flex items-center space-x-3 z-50">
+          <div className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+            v0.3.0
+          </div>
           <div className={`px-3 py-1 rounded-full text-sm ${
             isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
           }`}>

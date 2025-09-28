@@ -59,6 +59,9 @@ export function AuthForm({ authService, onAuthSuccess }: AuthFormProps) {
           <p className="mt-2 text-center text-sm text-gray-600">
             Welcome to your chat application
           </p>
+          <p className="mt-1 text-center text-xs text-gray-500">
+            Version 0.3.0
+          </p>
         </div>
         
         <div className="bg-white py-8 px-6 shadow-lg rounded-lg">
