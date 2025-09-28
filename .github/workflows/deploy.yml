@@ -23,9 +23,14 @@ jobs:
         run: |
           echo "🚀 Starting deployment via Linode API..."
           
-          # Configure Linode CLI
+          # Configure Linode CLI non-interactively
           echo "🔧 Configuring Linode CLI..."
-          echo "${{ secrets.LINODE_API_TOKEN }}" | linode-cli configure --token
+          mkdir -p ~/.config/linode-cli
+          cat > ~/.config/linode-cli << EOF
+          [DEFAULT]
+          token = ${{ secrets.LINODE_API_TOKEN }}
+          region = us-east
+          EOF
           
           # Deploy code via Linode API
           echo "📥 Pulling latest changes..."
