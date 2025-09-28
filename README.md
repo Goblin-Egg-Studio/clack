@@ -84,6 +84,25 @@ Click "New repository secret" and add:
 - LINODE_SSH_KEY (private key content)
 - LINODE_PORT (optional, default 22)
 
+3) Set up domain (optional)
+If you have a domain, update the configuration:
+```bash
+# Update Nginx domain
+sudo nano /etc/nginx/sites-available/clack
+# set: server_name your-domain.com www.your-domain.com;
+
+# Update environment variables
+sudo nano /etc/systemd/system/clack.service
+# set: Environment=CORS_ORIGIN=https://your-domain.com
+
+# Restart services
+sudo systemctl daemon-reload && sudo systemctl restart clack
+sudo nginx -t && sudo systemctl restart nginx
+
+# Get SSL certificate
+sudo certbot --nginx -d your-domain.com
+```
+
 Push to `main` to deploy automatically. Manual dispatch is available in Actions.
 
 ### Production Configuration
