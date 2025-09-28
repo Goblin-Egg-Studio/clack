@@ -105,7 +105,10 @@ Click "New repository secret" and add:
 3. Click **Create Personal Access Token**
 4. Give it a name like "GitHub Actions Deploy"
 5. Set expiration (recommended: 1 year)
-6. Copy the token (you won't see it again!)
+6. **Set permissions:**
+   - **Linodes**: Read/Write ✅
+   - **Account**: Read Only ✅
+7. Copy the token (you won't see it again!)
 
 **To get your Instance ID:**
 1. Go to [Linode Dashboard](https://cloud.linode.com) → **Linodes**
