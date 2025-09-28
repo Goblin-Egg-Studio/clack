@@ -41,6 +41,8 @@ sudo usermod -aG sudo clack
 
 print_status "Installing Bun for clack user..."
 sudo -u clack bash -lc 'curl -fsSL https://bun.sh/install | bash'
+# Ensure Bun is in PATH for clack user
+sudo -u clack bash -lc 'echo "export PATH=\"\$HOME/.bun/bin:\$PATH\"" >> ~/.bashrc'
 
 print_status "Setting up project directory..."
 sudo mkdir -p /opt/clack
@@ -50,10 +52,10 @@ print_status "Cloning repository..."
 sudo -u clack git clone https://github.com/Goblin-Egg-Studio/clack.git /opt/clack
 
 print_status "Installing project dependencies..."
-sudo -u clack bash -lc 'cd /opt/clack && bun install'
+sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun install'
 
 print_status "Building the application..."
-sudo -u clack bash -lc 'cd /opt/clack && bun run build'
+sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun run build'
 
 print_status "Setting up systemd service..."
 sudo cp systemd/mygame.service /etc/systemd/system/clack.service
