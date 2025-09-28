@@ -3,15 +3,11 @@
 :root {
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
+  --color-bg: #f9fafb; /* default light */
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
+  --color-muted: #6b7280;
   --color-green-100: #dcfce7;
   --color-green-800: #166534;
   --color-red-100: #fee2e2;
@@ -31,6 +27,20 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
+/* Dark theme overrides */
+:root[data-theme='dark'] {
+  --color-bg: #0b1220;
+  --color-surface: #121a2a;
+  --color-border: #1f2937;
+  --color-text: #e5e7eb;
+  --color-muted: #9ca3af;
+  --color-green-100: #06341a;
+  --color-green-800: #22c55e;
+  --color-red-100: #2a1313;
+  --color-red-800: #f87171;
+  --color-blue-100: #102a43;
+}
+
 /* Reset and base styles */
 * {
   box-sizing: border-box;
@@ -41,8 +51,8 @@
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
-  color: var(--color-gray-900);
-  background-color: var(--color-gray-50);
+  color: var(--color-text);
+  background-color: var(--color-bg);
 }
 
 /* Layout utilities */
@@ -75,17 +85,17 @@ body {
 .mb-3 { margin-bottom: var(--spacing-3); }
 
 /* Borders */
-.border { border: 1px solid var(--color-gray-200); }
-.border-r { border-right: 1px solid var(--color-gray-200); }
-.border-t { border-top: 1px solid var(--color-gray-200); }
-.border-b { border-bottom: 1px solid var(--color-gray-200); }
+.border { border: 1px solid var(--color-border); }
+.border-r { border-right: 1px solid var(--color-border); }
+.border-t { border-top: 1px solid var(--color-border); }
+.border-b { border-bottom: 1px solid var(--color-border); }
 .rounded-lg { border-radius: var(--border-radius); }
 .rounded-full { border-radius: var(--border-radius-full); }
 
 /* Backgrounds */
-.bg-white { background-color: white; }
-.bg-gray-50 { background-color: var(--color-gray-50); }
-.bg-gray-100 { background-color: var(--color-gray-100); }
+.bg-white { background-color: var(--color-surface); }
+.bg-gray-50 { background-color: var(--color-bg); }
+.bg-gray-100 { background-color: var(--color-border); }
 .bg-blue-100 { background-color: var(--color-blue-100); }
 .bg-blue-600 { background-color: var(--color-primary); }
 .bg-green-100 { background-color: var(--color-green-100); }
@@ -101,11 +111,11 @@ body {
 .font-bold { font-weight: 700; }
 .text-center { text-align: center; }
 .text-left { text-align: left; }
-.text-gray-500 { color: var(--color-gray-500); }
-.text-gray-600 { color: var(--color-gray-600); }
-.text-gray-700 { color: var(--color-gray-700); }
-.text-gray-800 { color: var(--color-gray-800); }
-.text-gray-900 { color: var(--color-gray-900); }
+.text-gray-500 { color: var(--color-muted); }
+.text-gray-600 { color: var(--color-muted); }
+.text-gray-700 { color: var(--color-text); }
+.text-gray-800 { color: var(--color-text); }
+.text-gray-900 { color: var(--color-text); }
 .text-blue-600 { color: var(--color-blue-600); }
 .text-blue-700 { color: var(--color-blue-700); }
 .text-green-800 { color: var(--color-green-800); }
@@ -129,8 +139,8 @@ body {
 }
 
 /* Hover states */
-.hover\:bg-gray-50:hover { background-color: var(--color-gray-50); }
-.hover\:bg-gray-100:hover { background-color: var(--color-gray-100); }
+.hover\:bg-gray-50:hover { background-color: var(--color-bg); }
+.hover\:bg-gray-100:hover { background-color: var(--color-border); }
 .hover\:bg-blue-700:hover { background-color: var(--color-primary-hover); }
 
 /* Focus states */
@@ -142,7 +152,7 @@ body {
 .focus\:border-transparent:focus { border-color: transparent; }
 
 /* Disabled states */
-.disabled\:bg-gray-100:disabled { background-color: var(--color-gray-100); }
+.disabled\:bg-gray-100:disabled { background-color: var(--color-border); }
 .disabled\:bg-gray-400:disabled { background-color: #9ca3af; }
 .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
 
@@ -150,7 +160,7 @@ body {
 input[type="text"] {
   appearance: none;
   background-color: transparent;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   padding: var(--spacing-2) var(--spacing-3);
   font-size: 1rem;

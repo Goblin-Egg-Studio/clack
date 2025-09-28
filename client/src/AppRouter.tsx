@@ -10,8 +10,13 @@ import { UsersPage } from './components/UsersPage'
 import { SettingsPage } from './components/SettingsPage'
 import { ProfilePage } from './components/ProfilePage'
 import { ClackProvider, useClackContext } from './contexts/ClackContext'
+import { themeService } from './services/themeService'
 
 function AppContent() {
+  React.useEffect(() => {
+    themeService.init()
+  }, [])
+
   const [authService] = React.useState(() => new AuthService())
   const [isAuthenticated, setIsAuthenticated] = React.useState(false)
   const [currentUser, setCurrentUser] = React.useState(null)

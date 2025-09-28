@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { soundService, SoundSettings, SoundType } from '../services/soundService'
+import { themeService } from '../services/themeService'
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<SoundSettings>({
@@ -8,16 +9,24 @@ export function SettingsPage() {
     eventSounds: {},
     eventEnabled: {}
   })
+  const [isDark, setIsDark] = useState<boolean>(true)
 
-  // Load settings from sound service on mount
+  // Load settings from services on mount
   useEffect(() => {
     const currentSettings = soundService.getSettings()
     setSettings(currentSettings)
+    setIsDark(themeService.isDark())
   }, [])
 
   const handleMasterToggle = (enabled: boolean) => {
     soundService.setEnabled(enabled)
     setSettings(prev => ({ ...prev, soundsEnabled: enabled }))
+  }
+
+  const handleThemeToggle = (enabled: boolean) => {
+    const mode = enabled ? 'dark' : 'light'
+    themeService.setTheme(mode)
+    setIsDark(enabled)
   }
 
   const handleEventSoundChange = (eventType: string, soundType: SoundType) => {
@@ -26,8 +35,6 @@ export function SettingsPage() {
       ...prev,
       eventSounds: { ...prev.eventSounds, [eventType]: soundType }
     }))
-    
-    // Auto-play the selected sound
     soundService.playSound(soundType)
   }
 
@@ -46,111 +53,94 @@ export function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className="bg-white shadow-sm">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
+            <p className="text-sm text-gray-600">Configure preferences</p>
+          </div>
+          <Link to="/" className="text-blue-600 hover:text-blue-700">Back</Link>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto my-6 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-md font-semibold text-gray-900">Appearance</h3>
+          <p className="text-sm text-gray-600">Switch between dark and light mode</p>
+        </div>
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link 
-                to="/" 
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-                title="Back to Chat"
-              >
-                ← Back
-              </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            </div>
+            <span className="text-sm text-gray-900">Enable Dark Mode</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isDark}
+                onChange={(e) => handleThemeToggle(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
           </div>
         </div>
       </div>
 
-      {/* Settings Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
-            <p className="text-sm text-gray-600 mt-1">Configure sound notifications for different events</p>
+      <div className="max-w-5xl mx-auto my-6 bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-md font-semibold text-gray-900">Notifications</h3>
+          <p className="text-sm text-gray-600">Configure sound notifications for different events</p>
+        </div>
+
+        <div className="px-6 py-6 space-y-6">
+          {/* Master Sound Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">Enable Sounds</h3>
+              <p className="text-sm text-gray-600">Master toggle for all notification sounds</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.soundsEnabled}
+                onChange={(e) => handleMasterToggle(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
           </div>
 
-          <div className="px-6 py-6 space-y-6">
-            {/* Master Sound Toggle */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">Enable Sounds</h3>
-                <p className="text-sm text-gray-600">Master toggle for all notification sounds</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.soundsEnabled}
-                  onChange={(e) => handleMasterToggle(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
+          <div className="border-t border-gray-200 pt-6">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Event Sounds</h4>
+            <p className="text-sm text-gray-600 mb-4">Choose a sound for each event. Toggle to enable/disable.</p>
 
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Event Sound Settings</h3>
-              <p className="text-sm text-gray-600 mb-6">Choose what sound plays for each event type</p>
-              
-              {/* Event Sound Settings */}
-              <div className="space-y-4">
-                {soundService.getAvailableEventTypes().map((eventType) => (
-                  <div key={eventType.value} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-lg">
-                          {eventType.value === 'dm' && '💬'}
-                          {eventType.value === 'room_message' && '🏠'}
-                          {eventType.value === 'room_created' && '➕'}
-                          {eventType.value === 'user_joined' && '👋'}
-                          {eventType.value === 'user_left' && '👋'}
-                          {eventType.value === 'room_joined' && '🎉'}
-                          {eventType.value === 'room_left' && '👋'}
-                          {eventType.value === 'system' && '🔔'}
-                          {eventType.value === 'error' && '⚠️'}
-                        </span>
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900">{eventType.label}</h4>
-                          <p className="text-sm text-gray-600">{eventType.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settings.eventEnabled[eventType.value] || false}
-                          onChange={(e) => handleEventEnabledChange(eventType.value, e.target.checked)}
-                          disabled={!settings.soundsEnabled}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 peer-disabled:opacity-50"></div>
-                      </label>
-                      <select
-                        value={settings.eventSounds[eventType.value] || 'chime'}
-                        onChange={(e) => handleEventSoundChange(eventType.value, e.target.value as SoundType)}
-                        disabled={!settings.soundsEnabled || !(settings.eventEnabled[eventType.value] || false)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {soundService.getAvailableSoundTypes().map((sound) => (
-                          <option key={sound.value} value={sound.value}>
-                            {sound.label}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        onClick={() => testSound(settings.eventSounds[eventType.value] || 'chime')}
-                        className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={!settings.soundsEnabled || !(settings.eventEnabled[eventType.value] || false)}
-                      >
-                        Test
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            {/* Example: DM sound setting */}
+            {Object.entries(soundService.getAvailableEventTypes()).map(({ 0: idx, 1: evt }) => (
+              <div key={evt.value} className="flex items-center justify-between py-2 border-b border-gray-200">
+                <div className="flex-1">
+                  <div className="text-sm text-gray-900">{evt.label}</div>
+                  <div className="text-xs text-gray-600">{evt.description}</div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <select
+                    className="border rounded-lg p-2 bg-white text-gray-900"
+                    value={settings.eventSounds[evt.value] || 'chime'}
+                    onChange={(e) => handleEventSoundChange(evt.value, e.target.value as SoundType)}
+                  >
+                    {soundService.getAvailableSounds().map(sound => (
+                      <option key={sound} value={sound}>{sound}</option>
+                    ))}
+                  </select>
+                  <label className="inline-flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={settings.eventEnabled[evt.value] ?? false}
+                      onChange={(e) => handleEventEnabledChange(evt.value, e.target.checked)}
+                    />
+                    <span className="text-sm text-gray-900">Enabled</span>
+                  </label>
+                  <button onClick={() => testSound(settings.eventSounds[evt.value] || 'chime')}>Test</button>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
