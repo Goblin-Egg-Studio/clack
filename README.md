@@ -76,6 +76,8 @@ chmod +x scripts/setup-linode.sh
 ./scripts/setup-linode.sh
 ```
 
+If you don't care about automatically deploying updates when the main branch in your repository, then you're done! Otherwise, continue below.
+
 2) Set up SSH access
 ```bash
 # Check if you have SSH keys, generate if needed
@@ -117,14 +119,16 @@ cat ~/.ssh/id_ed25519
 - LINODE_SSH_KEY (paste the entire private key content from above)
 - LINODE_PORT (`22` - optional)
 
+If you plan on using HTTP, not HTTPS (not recommended), and/or don't have a domain to use, then you're done! Otherwise, continue below (recommended):
+
 5) Set up domain (optional)
 If you have a domain, configure it:
 
-**In your domain registrar (GoDaddy, Namecheap, etc.):**
+5a) In your domain registrar (GoDaddy, Namecheap, etc.):
 - Add an A record: `your-domain.com` → `YOUR_LINODE_IP`
 - Add an A record: `www.your-domain.com` → `YOUR_LINODE_IP`
 
-**On your Linode server:**
+5b) On your Linode server:
 ```bash
 # Update Nginx domain
 sudo nano /etc/nginx/sites-available/clack
