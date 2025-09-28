@@ -97,7 +97,7 @@ cat ~/.ssh/id_ed25519.pub
 
 # On your Linode server, add the public key
 sudo -u clack mkdir -p /home/clack/.ssh
-echo "YOUR_PUBLIC_KEY_CONTENT" | sudo -u clack tee -a /home/clack/.ssh/authorized_keys
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFT9DroHmys8vC/SR57jwkTydR4KlFe9j0iJ8hEl1Ghu brooswit@gmail.com" | sudo -u clack tee -a /home/clack/.ssh/authorized_keys
 sudo chmod 600 /home/clack/.ssh/authorized_keys
 sudo chown clack:clack /home/clack/.ssh/authorized_keys
 ```
@@ -107,10 +107,15 @@ Go to your GitHub repo → Settings → Secrets and variables → Actions → Re
 Click "New repository secret" and add:
 
 ```bash
-# Copy your private key for GitHub secrets
+# Copy your private key for GitHub secrets (include the header/footer lines)
 cat ~/.ssh/id_ed25519
 # OR if you only have RSA:
 # cat ~/.ssh/id_rsa
+
+# The key should look like:
+# -----BEGIN OPENSSH PRIVATE KEY-----
+# [key content]
+# -----END OPENSSH PRIVATE KEY-----
 ```
 
 **Add these secrets:**
