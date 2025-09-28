@@ -100,8 +100,14 @@ sudo nginx -t
 sudo systemctl restart nginx
 
 print_status "Configuring SSH on custom port..."
-# Use environment variable or default to a random high port
-SSH_PORT=${SSH_PORT:-31415}
+# Use environment variable or generate a random high port
+if [ -z "${SSH_PORT:-}" ]; then
+    # Generate a random port between 30000-65000
+    SSH_PORT=$((30000 + RANDOM % 35000))
+    print_status "Generated random SSH port: $SSH_PORT"
+else
+    print_status "Using provided SSH port: $SSH_PORT"
+fi
 
 # Backup original SSH config
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
@@ -137,6 +143,9 @@ sudo systemctl status clack --no-pager
 
 print_success "Setup completed! 🎉"
 echo ""
+echo "🔑 IMPORTANT: Save this SSH port for GitHub secrets:"
+echo "   LINODE_PORT: $SSH_PORT"
+echo ""
 echo "Next steps:"
 echo "1. Update environment variables in /etc/systemd/system/clack.service (especially JWT_SECRET and CORS_ORIGIN)"
 echo "2. Run: sudo systemctl daemon-reload && sudo systemctl restart clack"
@@ -146,7 +155,7 @@ echo "5. Set up GitHub secrets:"
 echo "   - LINODE_HOST: your server IP"
 echo "   - LINODE_USER: clack"
 echo "   - LINODE_SSH_KEY: your private SSH key"
-echo "   - LINODE_PORT: $SSH_PORT (optional, defaults to 31415)"
+echo "   - LINODE_PORT: $SSH_PORT"
 echo ""
 echo "To use a different SSH port, set SSH_PORT environment variable:"
 echo "   SSH_PORT=12345 ./scripts/setup-linode.sh"
