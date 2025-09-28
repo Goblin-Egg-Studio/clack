@@ -14,64 +14,73 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: Install Linode CLI
+      - name: Deploy via Linode API
         run: |
-          pip install linode-cli
-          echo "✅ Linode CLI installed"
-
-      - name: Get Linode IP
-        id: get-ip
-        run: |
-          echo "🔍 Getting Linode instance IP..."
+          echo "🚀 Starting pure API deployment..."
+          
+          # Get Linode instance details
+          echo "🔍 Getting Linode instance details..."
           LINODE_IP=$(curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
             "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}" | \
             jq -r '.ipv4[0]')
-          echo "ip=$LINODE_IP" >> $GITHUB_OUTPUT
+          
           echo "📍 Linode IP: $LINODE_IP"
-
-      - name: Deploy to Linode
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ steps.get-ip.outputs.ip }}
-          username: clack
-          key: ${{ secrets.LINODE_SSH_KEY }}
-          port: 22
-          script: |
-            set -e
-            echo "🚀 Starting deployment..."
-            
-            # Navigate to project directory
-            cd /opt/clack
-            
-            # Pull latest changes
-            echo "📥 Pulling latest changes..."
-            git pull origin main
-            
-            # Install dependencies
-            echo "📦 Installing dependencies..."
-            bun install --no-progress --frozen-lockfile
-            
-            # Build the application
-            echo "🔨 Building application..."
-            bun run build
-            
-            # Restart the service
-            echo "🔄 Restarting service..."
-            sudo systemctl restart clack
-            
-            # Check service status
-            echo "✅ Checking service status..."
-            sudo systemctl status clack --no-pager
-            
-            echo "🎉 Deployment completed successfully!"
-
-      - name: Restart Linode Instance
-        run: |
-          echo "🔄 Restarting Linode instance..."
+          
+          # Create deployment user data script
+          echo "📝 Creating deployment user data..."
+          cat > user_data.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "🚀 GitHub Actions deployment triggered..."
+          
+          # Wait for system to be ready
+          sleep 30
+          
+          # Navigate to project directory
+          cd /opt/clack
+          
+          # Pull latest changes
+          echo "📥 Pulling latest changes..."
+          git pull origin main
+          
+          # Install dependencies
+          echo "📦 Installing dependencies..."
+          bun install --no-progress --frozen-lockfile
+          
+          # Build the application
+          echo "🔨 Building application..."
+          bun run build
+          
+          # Restart the service
+          echo "🔄 Restarting service..."
+          sudo systemctl restart clack
+          
+          # Check service status
+          echo "✅ Checking service status..."
+          sudo systemctl status clack --no-pager
+          
+          echo "🎉 Deployment completed successfully!"
+          EOF
+          
+          # Update Linode instance with new user data
+          echo "📤 Updating Linode instance with deployment script..."
+          curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -X PUT \
+            -d "{\"user_data\": \"$(base64 -w 0 user_data.sh)\"}" \
+            "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}"
+          
+          # Reboot the instance to trigger user data execution
+          echo "🔄 Rebooting Linode instance to execute deployment..."
           curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
             -X POST \
             "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}/reboot"
-          echo "✅ Linode instance restart initiated"
+          
+          echo "⏳ Waiting for deployment to complete..."
+          sleep 120
+          
+          echo "✅ Deployment completed via Linode API!"
+          echo "🎉 Pure API deployment successful!"
 
 
 
