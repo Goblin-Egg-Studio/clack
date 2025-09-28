@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 - Pure API deployment, security hardening, automated setup
+- **Deployment**: Replace SSH-based deployment with pure Linode API approach using user data
+- **Security**: Add fail2ban, SSH hardening, disable password auth, disable root login
+- **Setup**: Make setup script idempotent and safe to rerun from any point
+- **Documentation**: Comprehensive deployment instructions with Linode API token setup
+- **Cleanup**: Add SSH cleanup script for transitioning to API-based deployment
+- **Reliability**: Remove SSH dependencies, use Linode's infrastructure for deployment
+
 ## 0.3.0 - Rooms ownership, MCP/SSE upgrades, UI polish
 - Add room ownership model: creator is owner; owner can transfer or delete
 - Backend: new MCP tools `change_room_owner`, `delete_room`; ChatService methods; SSE events `room_owner_changed`, `room_deleted`
