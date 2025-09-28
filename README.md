@@ -95,7 +95,13 @@ cat ~/.ssh/id_ed25519
 - LINODE_PORT (`22` - optional)
 
 3) Set up domain (optional)
-If you have a domain, update the configuration:
+If you have a domain, configure it:
+
+**In your domain registrar (GoDaddy, Namecheap, etc.):**
+- Add an A record: `your-domain.com` → `YOUR_LINODE_IP`
+- Add an A record: `www.your-domain.com` → `YOUR_LINODE_IP`
+
+**On your Linode server:**
 ```bash
 # Update Nginx domain
 sudo nano /etc/nginx/sites-available/clack
