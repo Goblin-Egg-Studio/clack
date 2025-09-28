@@ -76,7 +76,9 @@ chmod +x scripts/setup-linode.sh
 ./scripts/setup-linode.sh
 ```
 
-2) Set GitHub secrets
+2) Set GitHub repository secrets
+Go to your GitHub repo → Settings → Secrets and variables → Actions → Repository secrets
+Click "New repository secret" and add:
 - LINODE_HOST (server IP)
 - LINODE_USER (e.g. clack)
 - LINODE_SSH_KEY (private key content)
