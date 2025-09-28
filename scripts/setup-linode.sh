@@ -38,6 +38,10 @@ sudo apt install -y curl git nginx certbot python3-certbot-nginx ufw unzip
 print_status "Creating clack user..."
 sudo useradd -m -s /bin/bash clack || true
 sudo usermod -aG sudo clack
+# Ensure home directory exists and has proper permissions
+sudo mkdir -p /home/clack/.ssh
+sudo chown clack:clack /home/clack
+sudo chown clack:clack /home/clack/.ssh
 
 print_status "Installing Bun for clack user..."
 sudo -u clack bash -lc 'curl -fsSL https://bun.sh/install | bash'
