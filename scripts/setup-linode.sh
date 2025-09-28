@@ -99,19 +99,22 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 
-print_status "Configuring SSH on port 31415..."
+print_status "Configuring SSH on custom port..."
+# Use environment variable or default to a random high port
+SSH_PORT=${SSH_PORT:-31415}
+
 # Backup original SSH config
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
 
-# Configure SSH to use port 31415
-sudo sed -i 's/#Port 22/Port 31415/' /etc/ssh/sshd_config
-sudo sed -i 's/Port 22/Port 31415/' /etc/ssh/sshd_config
+# Configure SSH to use custom port
+sudo sed -i "s/#Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
+sudo sed -i "s/Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
 
 # Restart SSH service
 sudo systemctl restart sshd
 
 print_status "Configuring firewall..."
-sudo ufw allow 31415/tcp
+sudo ufw allow $SSH_PORT/tcp
 sudo ufw allow 'Nginx Full'
 sudo ufw --force enable
 
@@ -143,6 +146,9 @@ echo "5. Set up GitHub secrets:"
 echo "   - LINODE_HOST: your server IP"
 echo "   - LINODE_USER: clack"
 echo "   - LINODE_SSH_KEY: your private SSH key"
-echo "   - LINODE_PORT: 31415 (optional, 31415 is now the default)"
+echo "   - LINODE_PORT: $SSH_PORT (optional, defaults to 31415)"
+echo ""
+echo "To use a different SSH port, set SSH_PORT environment variable:"
+echo "   SSH_PORT=12345 ./scripts/setup-linode.sh"
 echo ""
 echo "Your app should be running at: http://$(curl -s ifconfig.me)"

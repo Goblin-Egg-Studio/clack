@@ -122,7 +122,7 @@ cat ~/.ssh/id_ed25519
 - LINODE_HOST (your Linode server IP)
 - LINODE_USER (`clack`)
 - LINODE_SSH_KEY (paste the entire private key content from above)
-   - LINODE_PORT (`31415` - optional, 31415 is now the default)
+   - LINODE_PORT (optional, defaults to 31415)
 
 
 Push to `main` to deploy automatically. Manual dispatch is available in Actions.
