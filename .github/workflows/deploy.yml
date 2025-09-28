@@ -51,6 +51,11 @@ jobs:
           echo "🔨 Building application..."
           bun run build
           
+          # Ensure database file has correct permissions
+          echo "🔧 Fixing database permissions..."
+          sudo chown clack:clack /opt/clack/chat.db 2>/dev/null || true
+          sudo chmod 664 /opt/clack/chat.db 2>/dev/null || true
+          
           # Restart the service
           echo "🔄 Restarting service..."
           sudo systemctl restart clack

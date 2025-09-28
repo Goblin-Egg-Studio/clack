@@ -279,6 +279,13 @@ fi
 
 sudo systemctl daemon-reload
 
+print_status "Setting up database..."
+# Create database file with correct permissions
+sudo -u clack touch /opt/clack/chat.db
+sudo chown clack:clack /opt/clack/chat.db
+sudo chmod 664 /opt/clack/chat.db
+print_status "Database file created with correct permissions"
+
 print_status "Starting services..."
 # Start clack service if not already running
 if ! service_running clack; then
