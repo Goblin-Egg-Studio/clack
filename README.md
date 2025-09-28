@@ -83,19 +83,19 @@ Click "New repository secret" and add:
 **Set up SSH access:**
 ```bash
 # 1. On your local machine, copy your public SSH key
-cat ~/.ssh/id_rsa.pub
-# or
 cat ~/.ssh/id_ed25519.pub
+```
 
+```bash
 # 2. On your Linode server, add the public key
 sudo -u clack mkdir -p /home/clack/.ssh
 echo "YOUR_PUBLIC_KEY_CONTENT" | sudo -u clack tee -a /home/clack/.ssh/authorized_keys
 sudo chmod 600 /home/clack/.ssh/authorized_keys
 sudo chown clack:clack /home/clack/.ssh/authorized_keys
+```
 
+```bash
 # 3. Copy your private key for GitHub secrets
-cat ~/.ssh/id_rsa
-# or
 cat ~/.ssh/id_ed25519
 ```
 
