@@ -99,6 +99,19 @@ Click "New repository secret" and add:
 - LINODE_API_TOKEN (your Linode API token from dashboard)
 - LINODE_INSTANCE_ID (your Linode instance ID)
 
+**To get your Linode API token:**
+1. Go to [Linode Dashboard](https://cloud.linode.com)
+2. Click your profile icon (top right) → **API Tokens**
+3. Click **Create Personal Access Token**
+4. Give it a name like "GitHub Actions Deploy"
+5. Set expiration (recommended: 1 year)
+6. Copy the token (you won't see it again!)
+
+**To get your Instance ID:**
+1. Go to [Linode Dashboard](https://cloud.linode.com) → **Linodes**
+2. Click on your server
+3. Copy the ID from the URL (e.g., `linode.com/linodes/123456`) or from the server details
+
 
 Push to `main` to deploy automatically. Manual dispatch is available in Actions.
 
