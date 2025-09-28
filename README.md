@@ -1,52 +1,206 @@
-# Clack Chat (Bun + React + SpaceTimeDB)
+# Clack Chat
 
-Simple static React chat app served by Bun. SpaceTimeDB reducers power the backend (no REST API).
+A modern real-time chat application built with Bun, React, and SQLite. Features direct messaging, room-based chat, sound notifications, and automatic deployment to Linode.
 
-## Prerequisites
+## ✨ Features
+
+- **Real-time messaging** with Server-Sent Events (SSE)
+- **Direct messages** between users
+- **Room-based chat** with ownership management
+- **Sound notifications** with customizable settings
+- **User authentication** with bcrypt password hashing
+- **Responsive design** with modern UI
+- **Automatic deployment** to Linode with CI/CD
+
+## 🏗️ Architecture
+
+- **Frontend**: React with TypeScript, Clack client SDK (SSE + MCP)
+- **Backend**: Bun server with SQLite database
+- **Real-time**: Server-Sent Events (SSE)
+- **Authentication**: JWT tokens with bcrypt password hashing
+- **Communication**: Model Context Protocol (MCP) for AI integration
+
+## 🚀 Quick Start
+
+### Prerequisites
 - Bun installed
-- Linux/macOS
+- Linux/macOS/Windows
 
-## Install
+### Local Development
+
 ```bash
-# From repo root
+# Clone the repository
+git clone https://github.com/Goblin-Egg-Studio/clack.git
+cd clack
+
+# Install dependencies
 bun install
-```
 
-## Fetch SpaceTimeDB binary
-```bash
-./scripts/fetch-spacetimedb.sh
-```
+# Build the client
+bun run build
 
-## Build client
-```bash
-cd client && bun install && bun run build && cp index.html dist/
-```
-
-## Run locally
-```bash
-# In repo root
+# Start the development server
 bun run server.ts
-# App: http://localhost:3000
-# Health: http://localhost:3000/health
 ```
 
-## Config
-- Server injects `/env.js` with:
-  - STDB_URL (default: ws://localhost:3001)
-  - STDB_MODULE (default: chat)
+Visit: http://localhost:3000
 
-Set environment variables before starting:
+### Development Commands
+
 ```bash
-STDB_URL=ws://127.0.0.1:3001 STDB_MODULE=chat bun run server.ts
+# Start development server
+make dev
+
+# Build for production
+make build
+
+# View deployment documentation
+make deploy-docs
+
+# Check deployment configuration
+make deploy-check
 ```
 
-## SpaceTimeDB
-- Schema: `server/schema.sql`
-- Reducers: `server/main.ts` (join, send_message, delete_message)
+## 📦 Production Deployment
 
-## Deploy
-- GitHub Actions: `.github/workflows/deploy.yml`
-- Systemd template: `systemd/mygame.service`
+### Automated Deployment
+
+This project uses GitHub Actions for automatic deployment to Linode. Do these three steps:
+
+1) Setup Clack on Linode
+```bash
+# On your Linode instance
+git clone https://github.com/Goblin-Egg-Studio/clack.git
+cd clack
+chmod +x scripts/setup-linode.sh
+./scripts/setup-linode.sh
+```
+
+2) Set environment variables on Linode
+```bash
+sudo nano /etc/systemd/system/clack.service
+# Ensure these lines exist/are set:
+# Environment=NODE_ENV=production
+# Environment=PORT=3000
+# Environment=JWT_SECRET=your-secret
+# Environment=CORS_ORIGIN=https://yourdomain.com
+sudo systemctl daemon-reload && sudo systemctl restart clack
+```
+
+Note: Update Nginx domain too:
+```bash
+sudo nano /etc/nginx/sites-available/clack
+# set: server_name your-domain.com www.your-domain.com;
+sudo nginx -t && sudo systemctl restart nginx
+```
+
+3) Set GitHub secrets
+- LINODE_HOST (server IP)
+- LINODE_USER (e.g. clack)
+- LINODE_SSH_KEY (private key content)
+- LINODE_PORT (optional, default 22)
+
+Push to `main` to deploy automatically. Manual dispatch is available in Actions.
+
+### Production Configuration
+
+The application includes production-ready configurations:
+- **Systemd service** for process management
+- **Nginx reverse proxy** with SSL support
+- **Security headers** and rate limiting
+- **Automatic restarts** and health monitoring
+
+## 📁 Project Structure
+
+```
+clack/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── services/      # API and sound services
+│   │   └── sdk/          # MCP client
+├── server/                # Backend services
+│   ├── services/          # Business logic
+│   └── validation/          # Input validation
+├── scripts/              # Deployment scripts
+├── nginx/                # Nginx configuration
+├── systemd/              # Systemd service files
+├── .github/workflows/    # CI/CD pipelines
+└── DEPLOYMENT.md         # Detailed deployment guide
+```
+
+## 🛠️ Development
+
+### Key Components
+
+- **ChatLayout**: Main chat interface with sidebar
+- **ChatView**: Direct message interface
+- **RoomChatView**: Room-based chat interface
+- **SettingsPage**: User preferences and sound configuration
+- **ProfilePage**: User profile management
+- **RoomsPage**: Room management with ownership controls
+
+### API Endpoints
+
+- `POST /api/auth/login` - User authentication
+- `POST /api/auth/register` - User registration
+- `GET /api/events` - Server-Sent Events stream
+- `POST /api/mcp` - Model Context Protocol for AI integration
+
+### Database Schema
+
+- `users` - User accounts with bcrypt hashed passwords
+- `rooms` - Chat rooms with ownership
+- `room_members` - Room membership
+- `messages` - Chat messages with pagination
+
+## 🔒 Security
+
+- **Password hashing** with bcrypt (12 rounds)
+- **JWT authentication** with configurable secrets
+- **CORS protection** with origin validation
+- **Rate limiting** to prevent abuse
+- **Security headers** via Nginx
+- **User isolation** in systemd service
+
+## 📊 Monitoring
+
+### Service Management
+
+```bash
+# Check service status
+make status
+
+# View logs
+make logs
+
+# Restart service
+make restart
+```
+
+### Health Checks
+
+- Application: http://localhost:3000/health
+- Systemd: `sudo systemctl status clack`
+- Nginx: `sudo systemctl status nginx`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+- **Issues**: [GitHub Issues](https://github.com/Goblin-Egg-Studio/clack/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Goblin-Egg-Studio/clack/discussions)
 
 
 

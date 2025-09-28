@@ -3,6 +3,7 @@ name: Deploy to Linode
 on:
   push:
     branches: [main]
+  workflow_dispatch: # Allow manual deployment
 
 jobs:
   deploy:
@@ -13,20 +14,41 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: SSH Deploy to Linode
+      - name: Deploy to Linode
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.LINODE_HOST }}
           username: ${{ secrets.LINODE_USER }}
           key: ${{ secrets.LINODE_SSH_KEY }}
+          port: ${{ secrets.LINODE_PORT || 22 }}
           script: |
             set -e
-            cd /opt/mygame
-            git pull
-            ./scripts/fetch-spacetimedb.sh
-            bun install --no-progress
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to project directory
+            cd /opt/clack
+            
+            # Pull latest changes
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+            
+            # Install dependencies
+            echo "📦 Installing dependencies..."
+            bun install --no-progress --frozen-lockfile
+            
+            # Build the application
+            echo "🔨 Building application..."
             bun run build
-            sudo systemctl restart mygame
+            
+            # Restart the service
+            echo "🔄 Restarting service..."
+            sudo systemctl restart clack
+            
+            # Check service status
+            echo "✅ Checking service status..."
+            sudo systemctl status clack --no-pager
+            
+            echo "🎉 Deployment completed successfully!"
 
 
 

@@ -1,12 +1,20 @@
 [Unit]
-Description=SpaceTimeDB Game Server
+Description=Clack Chat Application
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/mygame
+Type=simple
+User=clack
+Group=clack
+WorkingDirectory=/opt/clack
 ExecStart=/usr/bin/env bun server.ts
 Restart=always
+RestartSec=5
 Environment=NODE_ENV=production
+Environment=PORT=3000
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=clack
 
 [Install]
 WantedBy=multi-user.target
