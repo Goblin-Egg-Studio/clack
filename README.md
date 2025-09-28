@@ -78,51 +78,26 @@ chmod +x scripts/setup-linode.sh
 
 If you don't care about automatically deploying updates when the main branch in your repository, then you're done! Otherwise, continue below.
 
-2) Set up SSH access
+2) Get your Linode API credentials
 ```bash
-# Check if you have SSH keys, generate if needed
-ls ~/.ssh/id_*
+# Get your Linode API token:
+# 1. Go to Linode Dashboard → API Tokens
+# 2. Create Personal Access Token
+# 3. Copy the token
 
-# If no keys exist, generate one:
-ssh-keygen -t ed25519 -C "your-email@example.com"
-# (Press Enter for all prompts to use defaults)
+# Get your Instance ID:
+# 1. Go to Linode Dashboard → Linodes
+# 2. Click on your server
+# 3. Copy the ID from the URL or details page
 ```
 
-3) Give Linode your public key
-```bash
-# Copy your public key (use whichever exists)
-cat ~/.ssh/id_ed25519.pub
-# OR if you only have RSA:
-# cat ~/.ssh/id_rsa.pub
-
-# On your Linode server, add the public key
-sudo -u clack mkdir -p /home/clack/.ssh
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFT9DroHmys8vC/SR57jwkTydR4KlFe9j0iJ8hEl1Ghu brooswit@gmail.com" | sudo -u clack tee -a /home/clack/.ssh/authorized_keys
-sudo chmod 600 /home/clack/.ssh/authorized_keys
-sudo chown clack:clack /home/clack/.ssh/authorized_keys
-```
-
-4) Set GitHub repository secrets
+3) Set GitHub repository secrets
 Go to your GitHub repo → Settings → Secrets and variables → Actions → Repository secrets
 Click "New repository secret" and add:
 
-```bash
-# Copy your private key for GitHub secrets (include the header/footer lines)
-cat ~/.ssh/id_ed25519
-# OR if you only have RSA:
-# cat ~/.ssh/id_rsa
-
-# The key should look like:
-# -----BEGIN OPENSSH PRIVATE KEY-----
-# [key content]
-# -----END OPENSSH PRIVATE KEY-----
-```
-
 **Add these secrets:**
-- LINODE_HOST (your Linode server IP)
-- LINODE_USER (`clack`)
-- LINODE_SSH_KEY (paste the entire private key content from above)
-   - LINODE_PORT (optional, defaults to 22)
+- LINODE_API_TOKEN (your Linode API token from dashboard)
+- LINODE_INSTANCE_ID (your Linode instance ID)
 
 
 Push to `main` to deploy automatically. Manual dispatch is available in Actions.

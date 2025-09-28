@@ -14,41 +14,39 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: Deploy to Linode
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.LINODE_HOST }}
-          username: ${{ secrets.LINODE_USER }}
-          key: ${{ secrets.LINODE_SSH_KEY }}
-          port: ${{ secrets.LINODE_PORT || 22 }}
-          script: |
-            set -e
-            echo "🚀 Starting deployment..."
-            
-            # Navigate to project directory
-            cd /opt/clack
-            
-            # Pull latest changes
-            echo "📥 Pulling latest changes..."
-            git pull origin main
-            
-            # Install dependencies
-            echo "📦 Installing dependencies..."
-            bun install --no-progress --frozen-lockfile
-            
-            # Build the application
-            echo "🔨 Building application..."
-            bun run build
-            
-            # Restart the service
-            echo "🔄 Restarting service..."
-            sudo systemctl restart clack
-            
-            # Check service status
-            echo "✅ Checking service status..."
-            sudo systemctl status clack --no-pager
-            
-            echo "🎉 Deployment completed successfully!"
+      - name: Install Linode CLI
+        run: |
+          pip install linode-cli
+          echo "✅ Linode CLI installed"
+
+      - name: Deploy to Linode via API
+        run: |
+          echo "🚀 Starting deployment via Linode API..."
+          
+          # Configure Linode CLI
+          echo "🔧 Configuring Linode CLI..."
+          echo "${{ secrets.LINODE_API_TOKEN }}" | linode-cli configure --token
+          
+          # Deploy code via Linode API
+          echo "📥 Pulling latest changes..."
+          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "cd /opt/clack && git pull origin main"
+          
+          echo "📦 Installing dependencies..."
+          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "cd /opt/clack && bun install --no-progress --frozen-lockfile"
+          
+          echo "🔨 Building application..."
+          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "cd /opt/clack && bun run build"
+          
+          echo "🔄 Restarting service..."
+          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "sudo systemctl restart clack"
+          
+          echo "✅ Checking service status..."
+          linode-cli linodes ssh ${{ secrets.LINODE_INSTANCE_ID }} --command "sudo systemctl status clack --no-pager"
+          
+          echo "🔄 Restarting Linode instance..."
+          linode-cli linodes reboot ${{ secrets.LINODE_INSTANCE_ID }}
+          
+          echo "🎉 Deployment completed successfully!"
 
 
 
