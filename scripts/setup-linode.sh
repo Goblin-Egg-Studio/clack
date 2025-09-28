@@ -49,7 +49,12 @@ sudo mkdir -p /opt/clack
 sudo chown clack:clack /opt/clack
 
 print_status "Cloning repository..."
-sudo -u clack git clone https://github.com/Goblin-Egg-Studio/clack.git /opt/clack
+if [ -d "/opt/clack/.git" ]; then
+    print_status "Repository already exists, updating..."
+    sudo -u clack bash -lc 'cd /opt/clack && git pull'
+else
+    sudo -u clack git clone https://github.com/Goblin-Egg-Studio/clack.git /opt/clack
+fi
 
 print_status "Installing project dependencies..."
 sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun install'
