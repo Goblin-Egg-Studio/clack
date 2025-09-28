@@ -119,16 +119,16 @@ cat ~/.ssh/id_ed25519
 - LINODE_SSH_KEY (paste the entire private key content from above)
 - LINODE_PORT (`22` - optional)
 
+
+Push to `main` to deploy automatically. Manual dispatch is available in Actions.
+
 If you plan on using HTTP, not HTTPS (not recommended), and/or don't have a domain to use, then you're done! Otherwise, continue below (recommended):
 
-5) Set up domain (optional)
-If you have a domain, configure it:
-
-5a) In your domain registrar (GoDaddy, Namecheap, etc.):
+5) In your domain registrar (GoDaddy, Namecheap, etc.):
 - Add an A record: `your-domain.com` → `YOUR_LINODE_IP`
 - Add an A record: `www.your-domain.com` → `YOUR_LINODE_IP`
 
-5b) On your Linode server:
+6) On your Linode server:
 ```bash
 # Update Nginx domain
 sudo nano /etc/nginx/sites-available/clack
@@ -146,7 +146,6 @@ sudo nginx -t && sudo systemctl restart nginx
 sudo certbot --nginx -d your-domain.com
 ```
 
-Push to `main` to deploy automatically. Manual dispatch is available in Actions.
 
 ### Production Configuration
 
