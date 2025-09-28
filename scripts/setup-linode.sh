@@ -168,38 +168,43 @@ else
     exit 1
 fi
 
-print_status "Configuring SSH on custom port..."
-# Use environment variable or generate a random high port
-if [ -z "${SSH_PORT:-}" ]; then
-    # Check if SSH port is already configured
-    if grep -q "^Port " /etc/ssh/sshd_config && ! grep -q "^Port 22" /etc/ssh/sshd_config; then
-        SSH_PORT=$(grep "^Port " /etc/ssh/sshd_config | awk '{print $2}')
-        print_status "Using existing SSH port: $SSH_PORT"
-    else
-        # Generate a random port between 30000-65000
-        SSH_PORT=$((30000 + RANDOM % 35000))
-        print_status "Generated random SSH port: $SSH_PORT"
-    fi
-else
-    print_status "Using provided SSH port: $SSH_PORT"
-fi
-
+print_status "Hardening SSH security..."
 # Backup original SSH config if not already backed up
 if [ ! -f "/etc/ssh/sshd_config.backup" ]; then
     sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
     print_status "Backed up original SSH config"
 fi
 
-# Configure SSH to use custom port
-if ! grep -q "^Port $SSH_PORT" /etc/ssh/sshd_config; then
-    sudo sed -i "s/#Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
-    sudo sed -i "s/Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
-    print_status "Updated SSH port to $SSH_PORT"
-else
-    print_status "SSH port already configured as $SSH_PORT"
+# Configure SSH security settings
+print_status "Configuring SSH security settings..."
+
+# Ensure SSH is on port 22 (standard)
+if ! grep -q "^Port 22" /etc/ssh/sshd_config; then
+    sudo sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
+    print_status "Set SSH to port 22"
 fi
 
-# Restart SSH service (try different service names)
+# Disable password authentication
+if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
+    sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sudo sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+    print_status "Disabled password authentication"
+fi
+
+# Disable root login
+if ! grep -q "^PermitRootLogin no" /etc/ssh/sshd_config; then
+    sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+    sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+    print_status "Disabled root login"
+fi
+
+# Enable public key authentication
+if ! grep -q "^PubkeyAuthentication yes" /etc/ssh/sshd_config; then
+    sudo sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+    print_status "Enabled public key authentication"
+fi
+
+# Restart SSH service
 if systemctl list-units --type=service | grep -q sshd; then
     sudo systemctl restart sshd
     print_status "Restarted sshd service"
@@ -209,16 +214,41 @@ elif systemctl list-units --type=service | grep -q ssh; then
 else
     print_warning "Could not find SSH service to restart automatically."
     print_warning "Please restart SSH manually: sudo systemctl restart sshd"
-    print_warning "Or try: sudo systemctl restart ssh"
 fi
 
-print_status "Configuring firewall..."
-# Check if port is already allowed
-if ! sudo ufw status | grep -q "$SSH_PORT/tcp"; then
-    sudo ufw allow $SSH_PORT/tcp
-    print_status "Added SSH port $SSH_PORT to firewall"
+print_status "Installing and configuring fail2ban..."
+# Install fail2ban if not already installed
+if ! command_exists fail2ban-server; then
+    sudo apt install -y fail2ban
+    print_status "Installed fail2ban"
 else
-    print_status "SSH port $SSH_PORT already allowed in firewall"
+    print_status "fail2ban already installed"
+fi
+
+# Configure fail2ban for SSH
+sudo tee /etc/fail2ban/jail.local > /dev/null << 'EOF'
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+findtime = 600
+EOF
+
+# Start and enable fail2ban
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+print_status "Configured fail2ban for SSH protection"
+
+print_status "Configuring firewall..."
+# Allow SSH on port 22
+if ! sudo ufw status | grep -q "22/tcp"; then
+    sudo ufw allow 22/tcp
+    print_status "Added SSH port 22 to firewall"
+else
+    print_status "SSH port 22 already allowed in firewall"
 fi
 
 # Check if Nginx is already allowed
@@ -263,21 +293,19 @@ sudo systemctl status clack --no-pager
 
 print_success "Setup completed! 🎉"
 echo ""
-echo "🔑 IMPORTANT: Save this SSH port for GitHub secrets:"
-echo "   LINODE_PORT: $SSH_PORT"
-echo ""
 echo "Next steps:"
 echo "1. Update environment variables in /etc/systemd/system/clack.service (especially JWT_SECRET and CORS_ORIGIN)"
 echo "2. Run: sudo systemctl daemon-reload && sudo systemctl restart clack"
 echo "3. Update your domain name in /etc/nginx/sites-available/clack"
 echo "4. Run: sudo certbot --nginx -d yourdomain.com"
-echo "5. Set up GitHub secrets:"
+echo "5. Set up Linode Cloud Firewall (RECOMMENDED):"
+echo "   - Go to Linode Dashboard → Firewalls → Create Firewall"
+echo "   - Add rule: Allow SSH (port 22) from GitHub Actions IPs"
+echo "   - Apply to your server"
+echo "6. Set up GitHub secrets:"
 echo "   - LINODE_HOST: your server IP"
 echo "   - LINODE_USER: clack"
 echo "   - LINODE_SSH_KEY: your private SSH key"
-echo "   - LINODE_PORT: $SSH_PORT"
-echo ""
-echo "To use a different SSH port, set SSH_PORT environment variable:"
-echo "   SSH_PORT=12345 ./scripts/setup-linode.sh"
+echo "   - LINODE_PORT: 22 (optional, 22 is now the default)"
 echo ""
 echo "Your app should be running at: http://$(curl -s ifconfig.me)"

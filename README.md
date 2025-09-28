@@ -122,10 +122,15 @@ cat ~/.ssh/id_ed25519
 - LINODE_HOST (your Linode server IP)
 - LINODE_USER (`clack`)
 - LINODE_SSH_KEY (paste the entire private key content from above)
-   - LINODE_PORT (the script will generate a random port and display it)
+   - LINODE_PORT (optional, defaults to 22)
 
 
 Push to `main` to deploy automatically. Manual dispatch is available in Actions.
+
+**Optional but recommended:** Set up Linode Cloud Firewall for better security:
+1. Go to Linode Dashboard → Firewalls → Create Firewall
+2. Add rule: Allow SSH (port 22) from GitHub Actions IPs
+3. Apply to your server
 
 If you plan on using HTTP, not HTTPS (not recommended), and/or don't have a domain to use, then you're done! Otherwise, continue below (recommended):
 
