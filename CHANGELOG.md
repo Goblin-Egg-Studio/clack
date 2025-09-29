@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.5 - Database persistence and version fixes
+- **Database**: Move database to persistent location `/opt/clack/data/chat.db` to survive deploys
+- **Service**: Rename systemd service from `mygame.service` to `clack.service`
+- **Version**: Fix version service method names and add `/version` route with VersionPage component
+- **Setup**: Ensure data directory exists before creating database
+- **Bugfix**: Update all components to use correct `getVersionInfo()` method
+
 ## 0.5.4 - Native EventSource
 - **Refactor**: Remove LaunchDarkly EventSource and use native browser EventSource
 
