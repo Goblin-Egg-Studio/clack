@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.7 - Add debugging for message sending authentication issue
+- **Debug**: Add server-side debugging to track authentication and header passing for MCP requests
+- **Debug**: Log req.user object and headers being passed to MCP tool execution
+- **Debug**: Track why senderId field is missing in message sending requests
+- **Version**: Bump to 0.6.7 (monorepo)
+
 ## 0.6.6 - Fix database persistence and registration flows
 - **Database**: Fix database persistence issue - users no longer lost after deploys
 - **Gitignore**: Add chat.db to .gitignore to prevent database overwrites during git operations

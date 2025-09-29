@@ -560,6 +560,12 @@ app.post('/api/mcp', authenticateMCP, async (req, res) => {
     }
 
     // Process MCP request using the core server
+    console.log('MCP Request - req.user:', req.user);
+    console.log('MCP Request - headers being passed:', {
+      userId: req.user.userId,
+      username: req.user.username,
+      ...req.headers
+    });
     const response = await mcpServer.processRequest(
       id,
       method,
