@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.12 - Fix database persistence during deploys
+- **Fix**: Change deployment script to use cp instead of git stash for database backup
+- **Database**: Use /tmp/chat.db.backup to preserve database across git reset --hard
+- **Deploy**: cp chat.db /tmp/chat.db.backup && git reset --hard origin/main && cp /tmp/chat.db.backup chat.db
+- **Version**: Bump to 0.6.12 (monorepo)
+
+## 0.6.11 - Fix infinite polling loop in ChatView
+- **Fix**: Remove allMessages dependency from loadMessages callback to prevent infinite re-renders
+- **Fix**: Simplify selectChat function to avoid dependency loops
+- **Performance**: Stop MCP endpoint from being hammered with excessive requests
+- **Version**: Bump to 0.6.11 (monorepo)
+
 ## 0.6.10 - Deploy debugging for message sending authentication issue
 - **Debug**: Deploy server-side debugging to track authentication and header passing for MCP requests
 - **Debug**: Log req.user object and headers being passed to MCP tool execution

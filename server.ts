@@ -72,7 +72,7 @@ app.post('/admin/deploy', async (req, res) => {
       return res.status(401).json({ error: 'unauthorized' });
     }
 
-    const cmd = "cd /opt/clack && git fetch origin && git stash push -m 'temp-stash' chat.db && git reset --hard origin/main && git stash pop && export PATH=\"$HOME/.bun/bin:$PATH\" && bun install --no-progress --frozen-lockfile && bun run build";
+    const cmd = "cd /opt/clack && git fetch origin && cp chat.db /tmp/chat.db.backup && git reset --hard origin/main && cp /tmp/chat.db.backup chat.db && export PATH=\"$HOME/.bun/bin:$PATH\" && bun install --no-progress --frozen-lockfile && bun run build";
     const proc = Bun.spawn(['bash', '-lc', cmd], { stdout: 'inherit', stderr: 'inherit' });
     const exitCode = await proc.exited;
     if (exitCode !== 0) {
