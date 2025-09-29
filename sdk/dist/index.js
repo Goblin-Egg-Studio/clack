@@ -22,6 +22,8 @@ class EventEmitter {
 class ClackClient extends EventEmitter {
   baseUrl;
   token = null;
+  username = null;
+  password = null;
   eventSource = null;
   autoReconnect;
   reconnectInterval;
@@ -32,6 +34,8 @@ class ClackClient extends EventEmitter {
     const origin = typeof window !== "undefined" && window.location && window.location.origin ? window.location.origin : "";
     this.baseUrl = options.baseUrl && options.baseUrl.trim().length > 0 ? options.baseUrl : origin;
     this.token = options.token || null;
+    this.username = options.username || null;
+    this.password = options.password || null;
     this.autoReconnect = options.autoReconnect ?? true;
     this.reconnectInterval = options.reconnectInterval || 3000;
   }
@@ -42,17 +46,28 @@ class ClackClient extends EventEmitter {
       this.connect();
     }
   }
+  setCredentials(username, password) {
+    this.username = username;
+    this.password = password;
+    if (this.eventSource) {
+      this.disconnect();
+      this.connect();
+    }
+  }
   getToken() {
     return this.token;
   }
   isAuthenticated() {
-    return this.token !== null;
+    return this.token !== null || this.username !== null && this.password !== null;
   }
   connect() {
-    if (!this.token) {
-      throw new Error("Token required to connect");
+    if (!this.isAuthenticated()) {
+      throw new Error("Authentication required to connect");
     }
     this.disconnect();
+    if (!this.token) {
+      throw new Error("Token required for SSE connection. Use setToken() for real-time features.");
+    }
     const url = `${this.baseUrl}/api/events?token=${this.token}`;
     this.eventSource = new EventSource(url);
     this.eventSource.onopen = () => {
@@ -148,7 +163,7 @@ class ClackClient extends EventEmitter {
     }
   }
   async makeMCPRequest(method, params = {}) {
-    if (!this.token) {
+    if (!this.isAuthenticated()) {
       throw new Error("Authentication required");
     }
     this.requestId++;
@@ -161,12 +176,19 @@ class ClackClient extends EventEmitter {
         arguments: params
       }
     };
+    if (this.username && this.password) {
+      request.username = this.username;
+      request.password = this.password;
+    }
+    const headers = {
+      "Content-Type": "application/json"
+    };
+    if (this.token) {
+      headers["Authorization"] = `Bearer ${this.token}`;
+    }
     const response = await fetch(`${this.baseUrl}/api/mcp`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.token}`
-      },
+      headers,
       body: JSON.stringify(request)
     });
     if (!response.ok) {
