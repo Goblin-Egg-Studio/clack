@@ -9,6 +9,7 @@ import { RoomsPage } from './components/RoomsPage'
 import { UsersPage } from './components/UsersPage'
 import { SettingsPage } from './components/SettingsPage'
 import { ProfilePage } from './components/ProfilePage'
+import { VersionPage } from './components/VersionPage'
 import { ClackProvider, useClackContext } from './contexts/ClackContext'
 import { themeService } from './services/themeService'
 import { VersionBadge } from './components/VersionBadge'
@@ -149,6 +150,7 @@ function AppContent() {
                 <Route path="users" element={<UsersPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
+                <Route path="version" element={<VersionPage />} />
               </Route>
             </Routes>
       </div>
