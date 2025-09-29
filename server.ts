@@ -590,10 +590,16 @@ app.post('/api/mcp', authenticateMCP, async (req, res) => {
     // Process MCP request using the core server
     console.log('MCP Request - req.user:', req.user);
     console.log('MCP Request - headers being passed:', {
-      userId: req.user.userId,
-      username: req.user.username,
+      userId: req.user?.userId,
+      username: req.user?.username,
       ...req.headers
     });
+    
+    if (!req.user || !req.user.userId) {
+      console.error('MCP Request - req.user is undefined or missing userId:', req.user);
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+    
     const response = await mcpServer.processRequest(
       id,
       method,

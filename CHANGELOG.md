@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.15 - Fix authentication check in MCP requests
+- **Fix**: Add proper authentication validation before processing MCP requests
+- **Debug**: Check if req.user exists and has userId before proceeding
+- **Error**: Return 401 if user authentication is missing
+- **Version**: Bump to 0.6.15 (monorepo)
+
 ## 0.6.14 - Add detailed debugging for send_message authentication
 - **Debug**: Add detailed logging in MCP tool registry to track headers and senderId
 - **Debug**: Log all headers received by send_message tool execution
