@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.10 - Deploy debugging for message sending authentication issue
+- **Debug**: Deploy server-side debugging to track authentication and header passing for MCP requests
+- **Debug**: Log req.user object and headers being passed to MCP tool execution
+- **Debug**: Track why senderId field is missing in message sending requests
+- **Version**: Bump to 0.6.10 (monorepo)
+
 ## 0.6.9 - Fix database persistence during deploys
 - **Deploy**: Fix database persistence issue - users no longer lost after deploys
 - **Git**: Modified deployment command to stash database file before git reset and restore after
