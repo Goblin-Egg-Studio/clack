@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.5 - Fix Direct Messages user list layout
+- **UI**: Fix Direct Messages user list to display each user on their own line instead of horizontally
+- **Layout**: Add explicit flex column layout with proper vertical spacing
+- **UX**: Each user link now takes full width and stacks vertically for better readability
+- **Version**: Bump to 0.6.5 (monorepo)
+
 ## 0.6.4 - Fix user registration authentication bug
 - **Bugfix**: Fix critical bug where registering a new user automatically logged you in as that user
 - **Auth**: Registration now keeps you logged in as your original account instead of switching to new user

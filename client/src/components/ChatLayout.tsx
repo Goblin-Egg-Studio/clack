@@ -69,12 +69,12 @@ export function ChatLayout() {
             {isDirectMessagesOpen && (
               <div className="px-4 pb-4">
                 {users.filter(user => user && user.id && user.id !== currentUser?.id).length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="flex flex-col space-y-1">
                     {users.filter(user => user && user.id && user.id !== currentUser?.id).map((user) => (
                       <Link
                         key={user.id}
                         to={`/chat/${user.id}`}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        className={`block w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                           location.pathname === `/chat/${user.id}`
                             ? 'bg-blue-100 text-blue-700'
                             : 'text-gray-700 hover:bg-gray-100'
