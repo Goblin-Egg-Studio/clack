@@ -392,7 +392,8 @@ function createJSONPatch(data: any): any {
       return {
         op: 'replace',
         path: `/rooms/${payload.room.id}`,
-        value: payload.room
+        value: payload.room,
+        joinedUserId: payload.joinedUserId
       };
     
     case 'new_message':

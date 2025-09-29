@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.3 - Fix join room button and message streaming
+- **Bugfix**: Fix join room button not updating state after successful join
+- **Bugfix**: Fix missing message streaming after sending room messages
+- **SSE**: Update server JSON patch to include joinedUserId in room_updated events
+- **Client**: Update SSE handler to properly pass joinedUserId to room:updated events
+- **Version**: Bump to 0.6.3 (monorepo)
+
 ## 0.6.2 - User registration on Users page
 - **Registration**: Add user registration form directly on Users page
 - **UI**: "Register New User" button with collapsible form

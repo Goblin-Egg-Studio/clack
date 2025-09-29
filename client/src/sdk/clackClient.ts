@@ -248,7 +248,7 @@ export class ClackClient extends EventEmitter {
           
           case 'replace':
             if (path.startsWith('/rooms/')) {
-              this.emit('room:updated', { room: value })
+              this.emit('room:updated', { room: value, joinedUserId: patch.joinedUserId })
             }
             break
           
