@@ -369,12 +369,15 @@ export function useClack() {
       const pairKey = getUserPairKey(currentUser.id, otherUserId)
       
       // Check if we already have messages for this chat
-      const existingMessages = allMessages.get(pairKey) || []
-      if (existingMessages.length > 0) {
-        setMessages(existingMessages)
-        setIsLoading(false)
-        return
-      }
+      setAllMessages(prev => {
+        const existingMessages = prev.get(pairKey) || []
+        if (existingMessages.length > 0) {
+          setMessages(existingMessages)
+          setIsLoading(false)
+          return prev // Return unchanged map
+        }
+        return prev
+      })
       
       // Load first page of messages
       const messages = await client.getMessagesPage(currentUser.id, 0, 10)
@@ -400,7 +403,7 @@ export function useClack() {
     } finally {
       setIsLoading(false)
     }
-  }, [allMessages, currentUser, client])
+  }, [currentUser, client])
 
   const loadMoreMessages = useCallback(async () => {
     if (!currentUser || !currentChatUser || isLoadingMore) return
@@ -495,16 +498,8 @@ export function useClack() {
 
   const selectChat = useCallback(async (otherUser: User): Promise<void> => {
     setCurrentChatUser(otherUser)
-    
-    // Use pre-loaded messages if available, otherwise load them
-    const pairKey = getUserPairKey(currentUser?.id || 0, otherUser.id)
-    const preloadedMessages = allMessages.get(pairKey)
-    if (preloadedMessages) {
-      setMessages(preloadedMessages)
-    } else {
-      await loadMessages(otherUser.id)
-    }
-  }, [allMessages, loadMessages, currentUser])
+    await loadMessages(otherUser.id)
+  }, [loadMessages])
 
       const createRoom = useCallback(async (name: string, description: string): Promise<Room> => {
         if (!currentUser) throw new Error('User not authenticated')
