@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthService, LoginRequest, RegisterRequest } from '../services/authService';
+import { versionService } from '../services/versionService';
 
 interface AuthFormProps {
   authService: AuthService;
@@ -14,6 +15,14 @@ export function AuthForm({ authService, onAuthSuccess }: AuthFormProps) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [clientVersion, setClientVersion] = useState<string>('');
+
+  useEffect(() => {
+    versionService.getVersion().then(v => {
+      const display = v.clientVersion || v.monorepoVersion || ''
+      setClientVersion(display)
+    }).catch(() => setClientVersion(''))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,9 +68,11 @@ export function AuthForm({ authService, onAuthSuccess }: AuthFormProps) {
           <p className="mt-2 text-center text-sm text-gray-600">
             Welcome to your chat application
           </p>
-          <p className="mt-1 text-center text-xs text-gray-500">
-            Version 0.3.0
-          </p>
+          {clientVersion && (
+            <p className="mt-1 text-center text-xs text-gray-500">
+              Version {clientVersion}
+            </p>
+          )}
         </div>
         
         <div className="bg-white py-8 px-6 shadow-lg rounded-lg">

@@ -11,6 +11,7 @@ import { SettingsPage } from './components/SettingsPage'
 import { ProfilePage } from './components/ProfilePage'
 import { ClackProvider, useClackContext } from './contexts/ClackContext'
 import { themeService } from './services/themeService'
+import { versionService } from './services/versionService'
 
 function AppContent() {
   React.useEffect(() => {
@@ -21,6 +22,14 @@ function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false)
   const [currentUser, setCurrentUser] = React.useState(null)
   const [isLoading, setIsLoading] = React.useState(true)
+  const [versionText, setVersionText] = React.useState('')
+
+  React.useEffect(() => {
+    versionService.getVersion().then(v => {
+      const display = v.clientVersion || v.monorepoVersion || ''
+      setVersionText(display ? `v${display}` : '')
+    }).catch(() => setVersionText(''))
+  }, [])
 
   const {
     authenticate,
@@ -100,9 +109,11 @@ function AppContent() {
       <div className="min-h-screen bg-gray-50">
         {/* Connection Status and Logout */}
         <div className="fixed top-4 right-4 flex items-center space-x-3 z-50">
-          <div className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-            v0.3.0
-          </div>
+          {versionText && (
+            <div className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+              {versionText}
+            </div>
+          )}
           <div className={`px-3 py-1 rounded-full text-sm ${
             isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
           }`}>

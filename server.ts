@@ -1,6 +1,7 @@
 import express from 'express';
 import serveStatic from 'serve-static';
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import { Database } from 'bun:sqlite';
 import { MCPServerCore } from './server/services/mcpServerCore.js';
 import { ChatService } from './server/services/chatService.js';
@@ -12,6 +13,27 @@ import { WebSocketServer } from 'ws';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
+
+// Version endpoint
+app.get('/__version', async (_req, res) => {
+  try {
+    const rootPkgPath = path.join(process.cwd(), 'package.json');
+    const clientPkgPath = path.join(process.cwd(), 'client', 'package.json');
+    const [rootPkgRaw, clientPkgRaw] = await Promise.all([
+      fs.readFile(rootPkgPath, 'utf8'),
+      fs.readFile(clientPkgPath, 'utf8').catch(() => 'null')
+    ]);
+    const rootPkg = JSON.parse(rootPkgRaw);
+    const clientPkg = clientPkgRaw !== 'null' ? JSON.parse(clientPkgRaw) : null;
+    res.json({
+      monorepoVersion: rootPkg.version ?? null,
+      clientVersion: clientPkg?.version ?? null,
+      name: rootPkg.name ?? 'clack'
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'version_unavailable' });
+  }
+});
 
 // Initialize SQLite database
 const db = new Database('chat.db');

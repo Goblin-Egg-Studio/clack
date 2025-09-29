@@ -157,9 +157,10 @@ body {
 .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
 
 /* Form elements */
-input[type="text"] {
+input[type="text"], input[type="password"] {
   appearance: none;
-  background-color: transparent;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   padding: var(--spacing-2) var(--spacing-3);
@@ -168,7 +169,11 @@ input[type="text"] {
   width: 100%;
 }
 
-input[type="text"]:focus {
+input::placeholder {
+  color: var(--color-muted);
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px var(--color-primary);
