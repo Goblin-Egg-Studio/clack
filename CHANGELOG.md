@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 - Dark theme + automatic version display
+- **UI**: Add dark theme with toggle in Settings (persists to localStorage)
+- **Accessibility**: Improve input contrast and placeholders for dark mode
+- **DX**: Auto version badge sourced from server `/__version` endpoint
+- **Refactor**: Centralize version badge as `VersionBadge` component
+
 ## 0.4.0 - Pure API deployment, security hardening, automated setup
 - **Deployment**: Replace SSH-based deployment with pure Linode API approach using user data
 - **Security**: Add fail2ban, SSH hardening, disable password auth, disable root login
