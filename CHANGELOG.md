@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.6 - Database persistence and version display improvements
+- **Database**: Fix systemd service to only update code when changes exist, preserving database across restarts
+- **Version**: Display both repo and client versions in VersionBadge and login screen
+- **UI**: Show `repo:0.5.6 | client:0.4.6` format for better version visibility
+- **Reliability**: Prevent database clearing on every service restart
+
 ## 0.5.5 - Database persistence and version fixes
 - **Database**: Move database to persistent location `/opt/clack/data/chat.db` to survive deploys
 - **Service**: Rename systemd service from `mygame.service` to `clack.service`
