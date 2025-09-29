@@ -86,7 +86,11 @@ export class ClackClient extends EventEmitter {
 
   constructor(options: ClackClientOptions = {}) {
     super()
-    this.baseUrl = options.baseUrl || ''
+    // Ensure absolute base URL: default to current origin in browser
+    const origin = typeof window !== 'undefined' && window.location && window.location.origin
+      ? window.location.origin
+      : ''
+    this.baseUrl = options.baseUrl && options.baseUrl.trim().length > 0 ? options.baseUrl : origin
     this.token = options.token || null
     this.autoReconnect = options.autoReconnect ?? true
     this.reconnectInterval = options.reconnectInterval || 3000
