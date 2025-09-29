@@ -8,7 +8,7 @@ class VersionService {
   private cached: VersionInfo | null = null
   private inflight: Promise<VersionInfo> | null = null
 
-  async getVersion(): Promise<VersionInfo> {
+  async getVersionInfo(): Promise<VersionInfo> {
     if (this.cached) return this.cached
     if (this.inflight) return this.inflight
     this.inflight = fetch('/__version')

@@ -56,8 +56,8 @@ log "Installing client dependencies"; sudo -u clack bash -lc 'cd /opt/clack/clie
 log "Building application"; sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun run build'
 
 # Systemd service
-if [ ! -f "/etc/systemd/system/clack.service" ] || ! cmp -s /opt/clack/systemd/mygame.service /etc/systemd/system/clack.service; then
-  log "Updating systemd unit"; sudo cp /opt/clack/systemd/mygame.service /etc/systemd/system/clack.service
+if [ ! -f "/etc/systemd/system/clack.service" ] || ! cmp -s /opt/clack/systemd/clack.service /etc/systemd/system/clack.service; then
+  log "Updating systemd unit"; sudo cp /opt/clack/systemd/clack.service /etc/systemd/system/clack.service
 else
   log "Systemd unit already up to date"
 fi
