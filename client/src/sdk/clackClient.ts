@@ -122,11 +122,14 @@ export class ClackClient extends EventEmitter {
     this.disconnect() // Close any existing connection
 
     const url = `${this.baseUrl}/api/events?token=${this.token}`
-    const headers: Record<string, string> = {}
-    // The token is already in querystring but preserve header if server supports
-    if (this.token) headers['Authorization'] = `Bearer ${this.token}`
-
-    this.eventSource = new LDEventSource(url, { headers, readTimeoutMillis: 60000 })
+    // In browsers, do not pass Node-only options (headers/readTimeoutMillis)
+    if (typeof window !== 'undefined') {
+      this.eventSource = new LDEventSource(url)
+    } else {
+      const headers: Record<string, string> = {}
+      if (this.token) headers['Authorization'] = `Bearer ${this.token}`
+      this.eventSource = new LDEventSource(url, { headers, readTimeoutMillis: 60000 })
+    }
 
     this.eventSource.onopen = () => {
       console.log('ClackClient: SSE connection opened')
