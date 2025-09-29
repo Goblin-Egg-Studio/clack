@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.4 - Native EventSource
+- **Refactor**: Remove LaunchDarkly EventSource and use native browser EventSource
+
 ## 0.5.3 - Bugfixes and watchdog
 - **Bugfix**: Default client baseUrl to window.location.origin to fix Invalid URL during registration
 - **Ops**: Add `/__health` endpoint, watchdog script, and systemd timer to auto-restart on failure

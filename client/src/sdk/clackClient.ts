@@ -73,12 +73,11 @@ export interface ClackClientOptions {
   reconnectInterval?: number
 }
 
-import { EventSource as LDEventSource } from 'launchdarkly-eventsource'
 
 export class ClackClient extends EventEmitter {
   private baseUrl: string
   private token: string | null = null
-  private eventSource: LDEventSource | null = null
+  private eventSource: EventSource | null = null
   private autoReconnect: boolean
   private reconnectInterval: number
   private reconnectTimer: NodeJS.Timeout | null = null
@@ -122,14 +121,8 @@ export class ClackClient extends EventEmitter {
     this.disconnect() // Close any existing connection
 
     const url = `${this.baseUrl}/api/events?token=${this.token}`
-    // Prefer native EventSource in browsers; use LD polyfill on server
-    if (typeof window !== 'undefined' && (window as any).EventSource) {
-      this.eventSource = new (window as any).EventSource(url)
-    } else {
-      const headers: Record<string, string> = {}
-      if (this.token) headers['Authorization'] = `Bearer ${this.token}`
-      this.eventSource = new LDEventSource(url, { headers, readTimeoutMillis: 60000 })
-    }
+    // Use native browser EventSource
+    this.eventSource = new EventSource(url)
 
     this.eventSource.onopen = () => {
       console.log('ClackClient: SSE connection opened')
@@ -303,11 +296,11 @@ export class ClackClient extends EventEmitter {
 
   // Utility methods
   isConnected(): boolean {
-    return (this.eventSource?.readyState ?? LDEventSource.CLOSED) === LDEventSource.OPEN
+    return (this.eventSource?.readyState ?? EventSource.CLOSED) === EventSource.OPEN
   }
 
   getConnectionState(): number {
-    return this.eventSource?.readyState ?? LDEventSource.CLOSED
+    return this.eventSource?.readyState ?? EventSource.CLOSED
   }
 
   // Get all methods that use index range getters under the hood
