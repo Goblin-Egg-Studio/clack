@@ -211,6 +211,10 @@ export class SoundService {
     ]
   }
 
+  getAvailableSounds(): SoundType[] {
+    return this.getAvailableSoundTypes().map(sound => sound.value)
+  }
+
   // Get available event types
   getAvailableEventTypes(): { value: string; label: string; description: string }[] {
     return [

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1 - Fix Settings notification selector
+- **Bugfix**: Restore missing `getAvailableSounds` helper used by Settings notifications page
+
 ## 0.5.0 - Dark theme + automatic version display
 - **UI**: Add dark theme with toggle in Settings (persists to localStorage)
 - **Accessibility**: Improve input contrast and placeholders for dark mode
