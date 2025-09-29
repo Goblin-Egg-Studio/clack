@@ -122,9 +122,9 @@ export class ClackClient extends EventEmitter {
     this.disconnect() // Close any existing connection
 
     const url = `${this.baseUrl}/api/events?token=${this.token}`
-    // In browsers, do not pass Node-only options (headers/readTimeoutMillis)
-    if (typeof window !== 'undefined') {
-      this.eventSource = new LDEventSource(url)
+    // Prefer native EventSource in browsers; use LD polyfill on server
+    if (typeof window !== 'undefined' && (window as any).EventSource) {
+      this.eventSource = new (window as any).EventSource(url)
     } else {
       const headers: Record<string, string> = {}
       if (this.token) headers['Authorization'] = `Bearer ${this.token}`
