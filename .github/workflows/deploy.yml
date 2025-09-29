@@ -14,78 +14,30 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: Deploy via Linode API
+      - name: Deploy via HTTP endpoint
+        env:
+          LINODE_API_TOKEN: ${{ secrets.LINODE_API_TOKEN }}
+          LINODE_INSTANCE_ID: ${{ secrets.LINODE_INSTANCE_ID }}
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
-          echo "🚀 Starting pure API deployment..."
-          
-          # Get Linode instance details
-          echo "🔍 Getting Linode instance details..."
-          LINODE_IP=$(curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
-            "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}" | \
-            jq -r '.ipv4[0]')
-          
+          echo "🚀 Starting deploy via HTTP endpoint..."
+
+          # Discover IP
+          LINODE_IP=$(curl -s -H "Authorization: Bearer ${LINODE_API_TOKEN}" \
+            "https://api.linode.com/v4/linode/instances/${LINODE_INSTANCE_ID}" | jq -r '.ipv4[0]')
           echo "📍 Linode IP: $LINODE_IP"
-          
-          # Create deployment user data script
-          echo "📝 Creating deployment user data..."
-          cat > user_data.sh << 'EOF'
-          #!/bin/bash
-          set -e
-          echo "🚀 GitHub Actions deployment triggered..."
-          
-          # Wait for system to be ready
-          sleep 30
-          
-          # Navigate to project directory
-          cd /opt/clack
-          
-          # Pull latest changes
-          echo "📥 Pulling latest changes..."
-          git pull origin main
-          
-          # Install dependencies
-          echo "📦 Installing dependencies..."
-          bun install --no-progress --frozen-lockfile
-          
-          # Build the application
-          echo "🔨 Building application..."
-          bun run build
-          
-          # Ensure database file has correct permissions
-          echo "🔧 Fixing database permissions..."
-          sudo chown clack:clack /opt/clack/chat.db 2>/dev/null || true
-          sudo chmod 664 /opt/clack/chat.db 2>/dev/null || true
-          
-          # Restart the service
-          echo "🔄 Restarting service..."
-          sudo systemctl restart clack
-          
-          # Check service status
-          echo "✅ Checking service status..."
-          sudo systemctl status clack --no-pager
-          
-          echo "🎉 Deployment completed successfully!"
-          EOF
-          
-          # Update Linode instance with new user data
-          echo "📤 Updating Linode instance with deployment script..."
-          curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -X PUT \
-            -d "{\"user_data\": \"$(base64 -w 0 user_data.sh)\"}" \
-            "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}"
-          
-          # Reboot the instance to trigger user data execution
-          echo "🔄 Rebooting Linode instance to execute deployment..."
-          curl -H "Authorization: Bearer ${{ secrets.LINODE_API_TOKEN }}" \
-            -X POST \
-            "https://api.linode.com/v4/linode/instances/${{ secrets.LINODE_INSTANCE_ID }}/reboot"
-          
-          echo "⏳ Waiting for deployment to complete..."
-          sleep 120
-          
-          echo "✅ Deployment completed via Linode API!"
-          echo "🎉 Pure API deployment successful!"
+
+          # Trigger deploy on server (service will self-restart)
+          echo "📤 Triggering deploy..."
+          curl -s -X POST -H "x-deploy-token: ${DEPLOY_TOKEN}" "http://${LINODE_IP}/admin/deploy" || true
+
+          echo "⏳ Waiting for restart..."
+          sleep 15
+
+          echo "🔎 Checking version endpoint..."
+          curl -s "http://${LINODE_IP}/__version" || true
+
+          echo "✅ Done"
 
 
 

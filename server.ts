@@ -35,6 +35,34 @@ app.get('/__version', async (_req, res) => {
   }
 });
 
+// Secure deploy endpoint (called by GitHub Action)
+app.post('/admin/deploy', async (req, res) => {
+  try {
+    const headerToken = req.header('x-deploy-token') || req.query.token;
+    const expected = process.env.DEPLOY_TOKEN;
+    if (!expected || !headerToken || headerToken !== expected) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+
+    const cmd = "cd /opt/clack && git fetch origin && git reset --hard origin/main && export PATH=\"$HOME/.bun/bin:$PATH\" && bun install --no-progress --frozen-lockfile && bun run build";
+    const proc = Bun.spawn(['bash', '-lc', cmd], { stdout: 'inherit', stderr: 'inherit' });
+    const exitCode = await proc.exited;
+    if (exitCode !== 0) {
+      return res.status(500).json({ error: 'deploy_failed', exitCode });
+    }
+
+    // Schedule self-restart so backend code updates too (systemd will restart it)
+    setTimeout(() => {
+      console.log('Restarting service via process.exit for deploy...');
+      process.exit(0);
+    }, 1000);
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'deploy_exception' });
+  }
+});
+
 // Initialize SQLite database
 const db = new Database('chat.db');
 
