@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.2 - Switch SSE client to LaunchDarkly EventSource
+- **Reliability**: Use `launchdarkly-eventsource` for robust SSE handling with timeouts
+
 ## 0.5.1 - Fix Settings notification selector
 - **Bugfix**: Restore missing `getAvailableSounds` helper used by Settings notifications page
 
