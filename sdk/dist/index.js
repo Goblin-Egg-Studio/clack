@@ -105,6 +105,9 @@ class ClackClient extends EventEmitter {
     switch (data.type) {
       case "connected":
         console.log("ClackClient: Connected as user:", data.user);
+        if (data.version) {
+          this.emit("version:received", data.version);
+        }
         break;
       case "room_owner_changed":
         this.emit("room:owner_changed", data);
