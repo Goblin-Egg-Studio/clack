@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.9 - Fix database persistence during deploys
+- **Deploy**: Fix database persistence issue - users no longer lost after deploys
+- **Git**: Modified deployment command to stash database file before git reset and restore after
+- **Database**: Prevents chat.db from being overwritten during git reset --hard operations
+- **Command**: git stash push -m 'temp-stash' chat.db && git reset --hard origin/main && git stash pop
+- **Version**: Bump to 0.6.9 (monorepo)
+
 ## 0.6.8 - Add version red alert for version mismatches
 - **UI**: Version badge turns red when new version is detected after reconnecting
 - **UX**: Visual indicator shows when user needs to refresh for latest version
