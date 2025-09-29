@@ -11,33 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Deploy via HTTP endpoint
+      - name: Reboot Linode to apply latest code
         env:
           LINODE_API_TOKEN: ${{ secrets.LINODE_API_TOKEN }}
           LINODE_INSTANCE_ID: ${{ secrets.LINODE_INSTANCE_ID }}
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
-          echo "🚀 Starting deploy via HTTP endpoint..."
-
-          # Discover IP
+          echo "🚀 Triggering reboot..."
+          curl -s -H "Authorization: Bearer ${LINODE_API_TOKEN}" -X POST \
+            "https://api.linode.com/v4/linode/instances/${LINODE_INSTANCE_ID}/reboot"
+          echo "⏳ Waiting for instance to come back..."
+          sleep 45
+          echo "🔎 Checking version endpoint..."
           LINODE_IP=$(curl -s -H "Authorization: Bearer ${LINODE_API_TOKEN}" \
             "https://api.linode.com/v4/linode/instances/${LINODE_INSTANCE_ID}" | jq -r '.ipv4[0]')
-          echo "📍 Linode IP: $LINODE_IP"
-
-          # Trigger deploy on server (service will self-restart)
-          echo "📤 Triggering deploy..."
-          curl -s -X POST -H "x-deploy-token: ${DEPLOY_TOKEN}" "http://${LINODE_IP}/admin/deploy" || true
-
-          echo "⏳ Waiting for restart..."
-          sleep 15
-
-          echo "🔎 Checking version endpoint..."
           curl -s "http://${LINODE_IP}/__version" || true
-
-          echo "✅ Done"
 
 
 
