@@ -29,7 +29,7 @@ export class AuthService {
     this.token = localStorage.getItem('clack_token');
   }
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
+  async register(data: RegisterRequest, autoLogin: boolean = true): Promise<AuthResponse> {
     const response = await fetch(`${this.baseUrl}/api/auth/register`, {
       method: 'POST',
       headers: {
@@ -44,8 +44,12 @@ export class AuthService {
       throw new Error(result.error || 'Registration failed');
     }
 
-    // DO NOT store token - registration should not automatically log you in
-    // The caller can decide whether to log in as the new user or not
+    // Only store token if autoLogin is true (login screen registration)
+    // Users page registration should not auto-login
+    if (autoLogin) {
+      this.token = result.token;
+      localStorage.setItem('clack_token', result.token);
+    }
     
     return result;
   }

@@ -25,7 +25,7 @@ export function UsersPage() {
 
     try {
       const authService = new AuthService()
-      const result = await authService.register(registrationData)
+      const result = await authService.register(registrationData, false) // Don't auto-login
       
       // Refresh the users list to show the new user
       await refreshUsers()

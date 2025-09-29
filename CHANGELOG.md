@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.6 - Fix database persistence and registration flows
+- **Database**: Fix database persistence issue - users no longer lost after deploys
+- **Gitignore**: Add chat.db to .gitignore to prevent database overwrites during git operations
+- **Registration**: Fix registration flows - login screen auto-logs in, Users page doesn't
+- **Auth**: Add autoLogin parameter to AuthService.register() for different registration contexts
+- **Version**: Bump to 0.6.6 (monorepo)
+
 ## 0.6.5 - Fix Direct Messages user list layout
 - **UI**: Fix Direct Messages user list to display each user on their own line instead of horizontally
 - **Layout**: Add explicit flex column layout with proper vertical spacing

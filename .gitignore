@@ -2,4 +2,5 @@ node_modules/
 client/dist/
 /bin/spacetimedb
 .DS_Store
+chat.db
 
