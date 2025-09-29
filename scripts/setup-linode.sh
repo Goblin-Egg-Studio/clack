@@ -89,10 +89,16 @@ sudo ln -sf /etc/nginx/sites-available/clack /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl restart nginx
 
-# Database file
-sudo -u clack touch /opt/clack/chat.db
-sudo chown clack:clack /opt/clack/chat.db
-sudo chmod 664 /opt/clack/chat.db
+# Database file (persistent location outside git repo)
+if [ ! -f /opt/clack/data/chat.db ]; then
+  log "Creating persistent database..."
+  sudo mkdir -p /opt/clack/data
+  sudo -u clack touch /opt/clack/data/chat.db
+  sudo chown clack:clack /opt/clack/data/chat.db
+  sudo chmod 664 /opt/clack/data/chat.db
+else
+  log "Database already exists, preserving data"
+fi
 
 # Install watchdog service
 log "Installing watchdog service..."

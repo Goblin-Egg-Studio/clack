@@ -16,7 +16,7 @@ Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=3000
-Environment=DATABASE_URL=./chat.db
+Environment=DATABASE_URL=/opt/clack/data/chat.db
 Environment=JWT_SECRET=change-this-jwt-secret-in-production
 Environment=CORS_ORIGIN=http://YOUR_LINODE_IP
 StandardOutput=journal
