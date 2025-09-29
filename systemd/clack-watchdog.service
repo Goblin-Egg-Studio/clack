@@ -1,0 +1,15 @@
+[Unit]
+Description=Clack Watchdog - Monitors service health
+After=clack.service
+Requires=clack.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/clack/scripts/watchdog.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=clack-watchdog
+
+[Install]
+WantedBy=multi-user.target

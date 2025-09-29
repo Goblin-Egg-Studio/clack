@@ -14,6 +14,15 @@ import { WebSocketServer } from 'ws';
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
 
+// Health check endpoint
+app.get('/__health', (_req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Version endpoint
 app.get('/__version', async (_req, res) => {
   try {

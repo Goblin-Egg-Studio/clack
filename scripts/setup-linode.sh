@@ -94,6 +94,14 @@ sudo -u clack touch /opt/clack/chat.db
 sudo chown clack:clack /opt/clack/chat.db
 sudo chmod 664 /opt/clack/chat.db
 
+# Install watchdog service
+log "Installing watchdog service..."
+sudo cp /opt/clack/systemd/clack-watchdog.service /etc/systemd/system/
+sudo cp /opt/clack/systemd/clack-watchdog.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable clack-watchdog.timer
+sudo systemctl start clack-watchdog.timer
+
 # Start service
 if ! systemctl is-active --quiet clack; then
   log "Starting clack"; sudo systemctl start clack
