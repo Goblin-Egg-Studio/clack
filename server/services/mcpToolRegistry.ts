@@ -248,9 +248,10 @@ export async function executeToolByName(
         case 'send_message': {
           const { otherUserId, content } = toolArgs;
           const senderId = headers.userId;
+          console.log(`[MCP-Tools] Headers received:`, headers);
           console.log(`[MCP-Tools] send_message - senderId: ${senderId}, otherUserId: ${otherUserId}, content: ${content}`);
           if (!senderId || !otherUserId || !content) {
-            throw new Error('otherUserId and content are required, and user must be authenticated');
+            throw new Error('Missing required field: senderId');
           }
           
           return await provider.sendMessage(senderId, otherUserId, content);

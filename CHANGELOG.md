@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.14 - Add detailed debugging for send_message authentication
+- **Debug**: Add detailed logging in MCP tool registry to track headers and senderId
+- **Debug**: Log all headers received by send_message tool execution
+- **Debug**: Track exactly what's being passed to the send_message tool
+- **Version**: Bump to 0.6.14 (monorepo)
+
 ## 0.6.13 - Add auto-registration for MCP authentication
 - **Feature**: MCP server now auto-registers users on first authentication attempt
 - **UX**: AI agents can use any username/password without pre-registration
