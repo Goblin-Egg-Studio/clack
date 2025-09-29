@@ -8,6 +8,7 @@ export interface VersionInfo {
 class VersionService {
   private cached: VersionInfo | null = null
   private inflight: Promise<VersionInfo> | null = null
+  private listeners: Set<(version: VersionInfo) => void> = new Set()
 
   async getVersionInfo(): Promise<VersionInfo> {
     if (this.cached) return this.cached
@@ -25,6 +26,18 @@ class VersionService {
         this.inflight = null
       })
     return this.inflight
+  }
+
+  // Method to update version from SSE stream
+  updateVersionFromSSE(version: VersionInfo): void {
+    this.cached = version
+    this.listeners.forEach(listener => listener(version))
+  }
+
+  // Method to subscribe to version updates
+  onVersionUpdate(listener: (version: VersionInfo) => void): () => void {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
   }
 }
 

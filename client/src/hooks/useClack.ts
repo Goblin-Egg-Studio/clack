@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ClackClient, Message, User, Room } from '../sdk/clackClient'
+import { ClackClient, Message, User, Room, VersionInfo } from '../sdk/clackClient'
 import { soundService } from '../services/soundService'
+import { versionService } from '../services/versionService'
 
 export function useClack() {
   const [client] = useState(() => new ClackClient({
@@ -28,6 +29,7 @@ export function useClack() {
   // Refs to avoid stale closures
   const currentChatUserRef = useRef<User | null>(null)
   const currentUserRef = useRef<User | null>(null)
+  const lastVersionRef = useRef<VersionInfo | null>(null)
 
   // Update refs when state changes
   useEffect(() => {
@@ -286,6 +288,33 @@ export function useClack() {
       setIsConnected(false)
     }
 
+    const handleVersionReceived = (version: VersionInfo) => {
+      console.log('useClack: Version received from SSE:', version)
+      
+      // Update version service with SSE data
+      versionService.updateVersionFromSSE(version)
+      
+      // Check if this is a reconnection with different version
+      if (lastVersionRef.current) {
+        const hasVersionChanged = 
+          lastVersionRef.current.monorepoVersion !== version.monorepoVersion ||
+          lastVersionRef.current.frontendVersion !== version.frontendVersion ||
+          lastVersionRef.current.sdkVersion !== version.sdkVersion
+        
+        if (hasVersionChanged) {
+          console.log('useClack: Version changed after reconnection, reloading page...')
+          console.log('Previous version:', lastVersionRef.current)
+          console.log('New version:', version)
+          // Reload the page to get the new version
+          window.location.reload()
+          return
+        }
+      }
+      
+      // Store the current version for future comparisons
+      lastVersionRef.current = version
+    }
+
         // Register event listeners
         client.on('message:new', handleNewMessage)
         client.on('user:new', handleNewUser)
@@ -305,6 +334,7 @@ export function useClack() {
           console.error('useClack: SSE connection error:', error)
           setIsConnected(false)
         })
+        client.on('version:received', handleVersionReceived)
 
         return () => {
           client.off('message:new', handleNewMessage)
@@ -325,6 +355,7 @@ export function useClack() {
             console.error('useClack: SSE connection error:', error)
             setIsConnected(false)
           })
+          client.off('version:received', handleVersionReceived)
           client.disconnect()
         }
   }, [client])

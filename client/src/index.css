@@ -1,8 +1,6 @@
 /* Modern CSS with CSS Variables - No build step needed! */
 
 :root {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
   --color-bg: #f9fafb; /* default light */
   --color-surface: #ffffff;
   --color-border: #e5e7eb;
@@ -25,6 +23,47 @@
   --border-radius: 0.5rem;
   --border-radius-full: 9999px;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Color theme variables */
+:root[data-color='blue'] {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-100: #dbeafe;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+}
+
+:root[data-color='red'] {
+  --color-primary: #dc2626;
+  --color-primary-hover: #b91c1c;
+  --color-primary-100: #fee2e2;
+  --color-primary-600: #dc2626;
+  --color-primary-700: #b91c1c;
+}
+
+:root[data-color='green'] {
+  --color-primary: #16a34a;
+  --color-primary-hover: #15803d;
+  --color-primary-100: #dcfce7;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
+}
+
+:root[data-color='yellow'] {
+  --color-primary: #ca8a04;
+  --color-primary-hover: #a16207;
+  --color-primary-100: #fef3c7;
+  --color-primary-600: #ca8a04;
+  --color-primary-700: #a16207;
+}
+
+:root[data-color='purple'] {
+  --color-primary: #9333ea;
+  --color-primary-hover: #7c3aed;
+  --color-primary-100: #f3e8ff;
+  --color-primary-600: #9333ea;
+  --color-primary-700: #7c3aed;
 }
 
 /* Dark theme overrides */
@@ -98,6 +137,7 @@ body {
 .bg-gray-100 { background-color: var(--color-border); }
 .bg-blue-100 { background-color: var(--color-blue-100); }
 .bg-blue-600 { background-color: var(--color-primary); }
+.bg-primary { background-color: var(--color-primary); }
 .bg-green-100 { background-color: var(--color-green-100); }
 .bg-red-100 { background-color: var(--color-red-100); }
 
@@ -116,7 +156,8 @@ body {
 .text-gray-700 { color: var(--color-text); }
 .text-gray-800 { color: var(--color-text); }
 .text-gray-900 { color: var(--color-text); }
-.text-blue-600 { color: var(--color-blue-600); }
+.text-blue-600 { color: var(--color-primary); }
+.text-primary { color: var(--color-primary); }
 .text-blue-700 { color: var(--color-blue-700); }
 .text-green-800 { color: var(--color-green-800); }
 .text-red-800 { color: var(--color-red-800); }

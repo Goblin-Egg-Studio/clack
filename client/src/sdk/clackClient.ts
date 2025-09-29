@@ -48,6 +48,13 @@ export interface Room {
   member_count: number
 }
 
+export interface VersionInfo {
+  monorepoVersion: string | null
+  frontendVersion: string | null
+  sdkVersion: string | null
+  name: string | null
+}
+
 export interface ClackEvents {
   'message:new': (message: Message) => void
   'user:new': (user: User) => void
@@ -64,6 +71,7 @@ export interface ClackEvents {
   'connection:open': () => void
   'connection:close': () => void
   'connection:error': (error: Event) => void
+  'version:received': (version: VersionInfo) => void
 }
 
 export interface ClackClientOptions {
@@ -184,6 +192,9 @@ export class ClackClient extends EventEmitter {
         switch (data.type) {
           case 'connected':
             console.log('ClackClient: Connected as user:', data.user)
+            if (data.version) {
+              this.emit('version:received', data.version)
+            }
             break
           case 'room_owner_changed':
             this.emit('room:owner_changed', data)

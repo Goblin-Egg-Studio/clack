@@ -1,49 +1,73 @@
 export type ThemeMode = 'dark' | 'light'
+export type ThemeColor = 'blue' | 'red' | 'green' | 'yellow' | 'purple'
 
-const THEME_STORAGE_KEY = 'clack-theme'
+const THEME_MODE_STORAGE_KEY = 'clack-theme-mode'
+const THEME_COLOR_STORAGE_KEY = 'clack-theme-color'
 
 class ThemeService {
-  private currentTheme: ThemeMode = 'dark'
+  private currentMode: ThemeMode = 'dark'
+  private currentColor: ThemeColor = 'blue'
 
   init(): void {
     try {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null
-      if (saved === 'dark' || saved === 'light') {
-        this.currentTheme = saved
+      const savedMode = localStorage.getItem(THEME_MODE_STORAGE_KEY) as ThemeMode | null
+      if (savedMode === 'dark' || savedMode === 'light') {
+        this.currentMode = savedMode
       } else {
-        this.currentTheme = 'dark'
+        this.currentMode = 'dark'
+      }
+
+      const savedColor = localStorage.getItem(THEME_COLOR_STORAGE_KEY) as ThemeColor | null
+      if (savedColor && ['blue', 'red', 'green', 'yellow', 'purple'].includes(savedColor)) {
+        this.currentColor = savedColor
+      } else {
+        this.currentColor = 'blue'
       }
     } catch {
-      this.currentTheme = 'dark'
+      this.currentMode = 'dark'
+      this.currentColor = 'blue'
     }
-    this.applyTheme(this.currentTheme)
+    this.applyTheme(this.currentMode, this.currentColor)
   }
 
-  getTheme(): ThemeMode {
-    return this.currentTheme
+  getMode(): ThemeMode {
+    return this.currentMode
+  }
+
+  getColor(): ThemeColor {
+    return this.currentColor
   }
 
   isDark(): boolean {
-    return this.currentTheme === 'dark'
+    return this.currentMode === 'dark'
   }
 
-  setTheme(mode: ThemeMode): void {
-    this.currentTheme = mode
+  setMode(mode: ThemeMode): void {
+    this.currentMode = mode
     try {
-      localStorage.setItem(THEME_STORAGE_KEY, mode)
+      localStorage.setItem(THEME_MODE_STORAGE_KEY, mode)
     } catch {}
-    this.applyTheme(mode)
+    this.applyTheme(this.currentMode, this.currentColor)
   }
 
-  toggleTheme(): ThemeMode {
-    const next: ThemeMode = this.currentTheme === 'dark' ? 'light' : 'dark'
-    this.setTheme(next)
+  setColor(color: ThemeColor): void {
+    this.currentColor = color
+    try {
+      localStorage.setItem(THEME_COLOR_STORAGE_KEY, color)
+    } catch {}
+    this.applyTheme(this.currentMode, this.currentColor)
+  }
+
+  toggleMode(): ThemeMode {
+    const next: ThemeMode = this.currentMode === 'dark' ? 'light' : 'dark'
+    this.setMode(next)
     return next
   }
 
-  private applyTheme(mode: ThemeMode): void {
+  private applyTheme(mode: ThemeMode, color: ThemeColor): void {
     if (typeof document === 'undefined') return
     document.documentElement.setAttribute('data-theme', mode)
+    document.documentElement.setAttribute('data-color', color)
   }
 }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { soundService, SoundSettings, SoundType } from '../services/soundService'
-import { themeService } from '../services/themeService'
+import { themeService, ThemeColor } from '../services/themeService'
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<SoundSettings>({
@@ -10,12 +10,14 @@ export function SettingsPage() {
     eventEnabled: {}
   })
   const [isDark, setIsDark] = useState<boolean>(true)
+  const [themeColor, setThemeColor] = useState<ThemeColor>('blue')
 
   // Load settings from services on mount
   useEffect(() => {
     const currentSettings = soundService.getSettings()
     setSettings(currentSettings)
     setIsDark(themeService.isDark())
+    setThemeColor(themeService.getColor())
   }, [])
 
   const handleMasterToggle = (enabled: boolean) => {
@@ -25,8 +27,13 @@ export function SettingsPage() {
 
   const handleThemeToggle = (enabled: boolean) => {
     const mode = enabled ? 'dark' : 'light'
-    themeService.setTheme(mode)
+    themeService.setMode(mode)
     setIsDark(enabled)
+  }
+
+  const handleThemeColorChange = (color: ThemeColor) => {
+    themeService.setColor(color)
+    setThemeColor(color)
   }
 
   const handleEventSoundChange = (eventType: string, soundType: SoundType) => {
@@ -68,20 +75,40 @@ export function SettingsPage() {
           <h3 className="text-md font-semibold text-gray-900">Appearance</h3>
         </div>
         <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm text-gray-900">Dark Mode</span>
-              <p className="text-xs text-gray-600">Switch between dark and light mode</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-gray-900">Dark Mode</span>
+                <p className="text-xs text-gray-600">Switch between dark and light mode</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isDark}
+                  onChange={(e) => handleThemeToggle(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isDark}
-                onChange={(e) => handleThemeToggle(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-gray-900">Theme Color</span>
+                <p className="text-xs text-gray-600">Choose your preferred color scheme</p>
+              </div>
+              <select
+                value={themeColor}
+                onChange={(e) => handleThemeColorChange(e.target.value as ThemeColor)}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="blue">Blue</option>
+                <option value="red">Red</option>
+                <option value="green">Green</option>
+                <option value="yellow">Yellow</option>
+                <option value="purple">Purple</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

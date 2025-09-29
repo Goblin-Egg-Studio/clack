@@ -23,8 +23,8 @@ app.get('/__health', (_req, res) => {
   });
 });
 
-// Version endpoint
-app.get('/__version', async (_req, res) => {
+// Helper function to get version data
+async function getVersionData() {
   try {
     const rootPkgPath = path.join(process.cwd(), 'package.json');
     const clientPkgPath = path.join(process.cwd(), 'client', 'package.json');
@@ -37,12 +37,27 @@ app.get('/__version', async (_req, res) => {
     const rootPkg = JSON.parse(rootPkgRaw);
     const clientPkg = clientPkgRaw !== 'null' ? JSON.parse(clientPkgRaw) : null;
     const sdkPkg = sdkPkgRaw !== 'null' ? JSON.parse(sdkPkgRaw) : null;
-    res.json({
+    return {
       monorepoVersion: rootPkg.version ?? null,
       frontendVersion: clientPkg?.version ?? null,
       sdkVersion: sdkPkg?.version ?? null,
       name: rootPkg.name ?? 'clack'
-    });
+    };
+  } catch (e) {
+    return {
+      monorepoVersion: null,
+      frontendVersion: null,
+      sdkVersion: null,
+      name: 'clack'
+    };
+  }
+}
+
+// Version endpoint
+app.get('/__version', async (_req, res) => {
+  try {
+    const versionData = await getVersionData();
+    res.json(versionData);
   } catch (e) {
     res.status(500).json({ error: 'version_unavailable' });
   }
@@ -241,8 +256,9 @@ const wsClients = new Set<any>();
         'Access-Control-Allow-Headers': 'Cache-Control'
       });
 
-      // Send initial connection event with user info
-      res.write(`data: {"type": "connected", "user": ${JSON.stringify(req.user)}}\n\n`);
+      // Send initial connection event with user info and version data
+      const versionData = await getVersionData();
+      res.write(`data: {"type": "connected", "user": ${JSON.stringify(req.user)}, "version": ${JSON.stringify(versionData)}}\n\n`);
       
       // No initial data sent - client will use MCP getters for historical data
       

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.1 - Theme color customization
+- **Themes**: Add 5 color themes (blue, red, green, yellow, purple) in settings
+- **UI**: Theme color dropdown in Appearance section alongside dark mode toggle
+- **Persistence**: Theme color and dark mode stored separately in localStorage
+- **CSS**: Dynamic color variables for all theme colors
+- **Version**: Bump to 0.6.1 (monorepo), 0.5.1 (frontend)
+
+## 0.6.0 - SSE version streaming and auto-reload
+- **SSE**: Send version information through SSE stream on connection
+- **Auto-reload**: Page automatically reloads if version changes after reconnection
+- **Version**: Bump to 0.6.0 (monorepo), 0.5.0 (frontend), 0.1.1 (SDK)
+- **Reliability**: Ensures users always have the latest version after reconnection
+
 ## 0.5.9 - SDK version tracking
 - **Version**: Add separate SDK version tracking alongside frontend version
 - **UI**: Display both frontend and SDK versions in VersionBadge, AuthForm, and VersionPage
