@@ -267,6 +267,19 @@ export class ClackClient extends EventEmitter {
       throw new Error('Authentication required')
     }
 
+    // Validate arguments before sending
+    try {
+      const { validateBeforeSend, getValidationErrorMessage } = await import('../utils/mcpValidation');
+      const validation = validateBeforeSend(method, params);
+      if (!validation.isValid) {
+        const errorMessage = getValidationErrorMessage(validation);
+        throw new Error(`Validation failed: ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      throw error;
+    }
+
     this.requestId++
     const request = {
       jsonrpc: '2.0',
