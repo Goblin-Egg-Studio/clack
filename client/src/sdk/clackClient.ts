@@ -77,6 +77,8 @@ export interface ClackEvents {
 export interface ClackClientOptions {
   baseUrl?: string
   token?: string
+  username?: string
+  password?: string
   autoReconnect?: boolean
   reconnectInterval?: number
 }
@@ -85,6 +87,8 @@ export interface ClackClientOptions {
 export class ClackClient extends EventEmitter {
   private baseUrl: string
   private token: string | null = null
+  private username: string | null = null
+  private password: string | null = null
   private eventSource: EventSource | null = null
   private autoReconnect: boolean
   private reconnectInterval: number
@@ -99,6 +103,8 @@ export class ClackClient extends EventEmitter {
       : ''
     this.baseUrl = options.baseUrl && options.baseUrl.trim().length > 0 ? options.baseUrl : origin
     this.token = options.token || null
+    this.username = options.username || null
+    this.password = options.password || null
     this.autoReconnect = options.autoReconnect ?? true
     this.reconnectInterval = options.reconnectInterval || 3000
   }
@@ -112,21 +118,35 @@ export class ClackClient extends EventEmitter {
     }
   }
 
+  setCredentials(username: string, password: string) {
+    this.username = username
+    this.password = password
+    if (this.eventSource) {
+      this.disconnect()
+      this.connect()
+    }
+  }
+
   getToken(): string | null {
     return this.token
   }
 
   isAuthenticated(): boolean {
-    return this.token !== null
+    return this.token !== null || (this.username !== null && this.password !== null)
   }
 
   // Connection management
   connect(): void {
-    if (!this.token) {
-      throw new Error('Token required to connect')
+    if (!this.isAuthenticated()) {
+      throw new Error('Authentication required to connect')
     }
 
     this.disconnect() // Close any existing connection
+
+    // SSE connections only support token authentication
+    if (!this.token) {
+      throw new Error('Token required for SSE connection. Use setToken() for real-time features.')
+    }
 
     const url = `${this.baseUrl}/api/events?token=${this.token}`
     // Use native browser EventSource
@@ -243,7 +263,7 @@ export class ClackClient extends EventEmitter {
 
   // MCP API methods
   private async makeMCPRequest(method: string, params: any = {}): Promise<any> {
-    if (!this.token) {
+    if (!this.isAuthenticated()) {
       throw new Error('Authentication required')
     }
 
@@ -258,12 +278,24 @@ export class ClackClient extends EventEmitter {
       }
     }
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+
+    // Add Bearer token if available
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`
+    }
+
+    // Add username/password authentication in headers
+    if (this.username && this.password) {
+      headers['X-Username'] = this.username
+      headers['X-Password'] = this.password
+    }
+
     const response = await fetch(`${this.baseUrl}/api/mcp`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`
-      },
+      headers,
       body: JSON.stringify(request)
     })
 

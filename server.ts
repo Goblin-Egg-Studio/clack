@@ -196,6 +196,26 @@ function verifyToken(token: string): { userId: number; username: string } | null
   }
 }
 
+// Authenticate user with username/password (for AI agents)
+async function authenticateUser(username: string, password: string): Promise<{ id: number; username: string } | null> {
+  try {
+    const user = db.prepare('SELECT id, username, password_hash FROM users WHERE username = ?').get(username) as any;
+    if (!user) {
+      return null;
+    }
+
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) {
+      return null;
+    }
+
+    return { id: user.id, username: user.username };
+  } catch (error) {
+    console.error('User authentication error:', error);
+    return null;
+  }
+}
+
 // Authentication middleware
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
@@ -212,6 +232,54 @@ function authenticateToken(req: any, res: any, next: any) {
 
   req.user = decoded;
   next();
+}
+
+// MCP authentication middleware - supports both token and username/password
+async function authenticateMCP(req: any, res: any, next: any) {
+  try {
+    console.log('MCP Auth - Headers:', {
+      authorization: req.headers['authorization'],
+      'x-username': req.headers['x-username'],
+      'x-password': req.headers['x-password'],
+      'X-Username': req.headers['X-Username'],
+      'X-Password': req.headers['X-Password']
+    });
+
+    // Try token authentication first (for SDK access)
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    
+    if (token) {
+      console.log('MCP Auth - Trying token authentication');
+      const decoded = verifyToken(token);
+      if (decoded) {
+        console.log('MCP Auth - Token authentication successful');
+        req.user = decoded;
+        return next();
+      }
+    }
+
+    // Try username/password authentication (for AI agents)
+    const username = req.headers['x-username'] || req.headers['X-Username'];
+    const password = req.headers['x-password'] || req.headers['X-Password'];
+    if (username && password) {
+      console.log('MCP Auth - Trying username/password authentication');
+      const user = await authenticateUser(username, password);
+      if (user) {
+        console.log('MCP Auth - Username/password authentication successful');
+        req.user = { userId: user.id, username: user.username };
+        return next();
+      }
+    }
+
+    // If neither method worked
+    return res.status(401).json({ 
+      error: 'Authentication required. Provide either Bearer token or X-Username/X-Password headers' 
+    });
+  } catch (error) {
+    console.error('MCP authentication error:', error);
+    return res.status(500).json({ error: 'Authentication failed' });
+  }
 }
 
 // SSE-specific authentication middleware (handles both header and query param)
@@ -476,30 +544,34 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   }
 });
 
-// MCP API Routes (now requires authentication)
-app.post('/api/mcp', authenticateToken, async (req, res) => {
+// MCP API Routes - Proper MCP HTTP Server
+app.post('/api/mcp', authenticateMCP, async (req, res) => {
   try {
-    const requestData = {
-      id: req.body.id || Date.now(),
-      method: req.body.method,
-      params: req.body.params || {},
-      headers: {
-        ...req.headers,
-        userId: req.user.userId,
-        username: req.user.username
-      }
-    };
-
-    const response = await mcpServer.handleRequest(requestData);
+    const { jsonrpc, id, method, params } = req.body;
     
-    res.status(response.statusCode);
-    res.set(response.headers);
-    
-    if (response.body) {
-      res.send(response.body);
-    } else {
-      res.end();
+    // Validate JSON-RPC 2.0 format
+    if (jsonrpc !== '2.0') {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        id,
+        error: { code: -32600, message: 'Invalid Request' }
+      });
     }
+
+    // Process MCP request using the core server
+    const response = await mcpServer.processRequest(
+      id,
+      method,
+      params || {},
+      {
+        userId: req.user.userId,
+        username: req.user.username,
+        ...req.headers
+      }
+    );
+
+    // Return proper JSON-RPC response
+    res.json(response);
   } catch (error) {
     console.error('MCP request error:', error);
     res.status(500).json({ 
