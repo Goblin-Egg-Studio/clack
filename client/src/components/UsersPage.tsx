@@ -1,13 +1,53 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useClackContext } from '../contexts/ClackContext'
+import { AuthService, RegisterRequest } from '../services/authService'
 
 export function UsersPage() {
   const navigate = useNavigate()
-  const { currentUser, users } = useClackContext()
+  const { currentUser, users, refreshUsers } = useClackContext()
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false)
+  const [registrationData, setRegistrationData] = useState({
+    username: '',
+    password: ''
+  })
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [registrationError, setRegistrationError] = useState('')
 
   const handleStartChat = (userId: number) => {
     navigate(`/chat/${userId}`)
+  }
+
+  const handleRegistrationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsRegistering(true)
+    setRegistrationError('')
+
+    try {
+      const authService = new AuthService()
+      const result = await authService.register(registrationData)
+      
+      // Refresh the users list to show the new user
+      await refreshUsers()
+      
+      // Reset form
+      setRegistrationData({ username: '', password: '' })
+      setShowRegistrationForm(false)
+      
+      console.log('User registered successfully:', result.user)
+    } catch (error: any) {
+      setRegistrationError(error.message || 'Registration failed')
+    } finally {
+      setIsRegistering(false)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setRegistrationData(prev => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
   return (
@@ -19,8 +59,74 @@ export function UsersPage() {
             <h2 className="text-2xl font-bold text-gray-900">Users</h2>
             <p className="text-sm text-gray-600">Browse and start conversations with other users</p>
           </div>
+          <button
+            onClick={() => setShowRegistrationForm(!showRegistrationForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          >
+            {showRegistrationForm ? 'Cancel' : 'Register New User'}
+          </button>
         </div>
       </div>
+
+      {/* Registration Form */}
+      {showRegistrationForm && (
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Register New User</h3>
+            <form onSubmit={handleRegistrationSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={registrationData.username}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter username"
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={registrationData.password}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter password"
+                />
+              </div>
+              {registrationError && (
+                <div className="text-red-600 text-sm">{registrationError}</div>
+              )}
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  disabled={isRegistering}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  {isRegistering ? 'Registering...' : 'Register User'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRegistrationForm(false)}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       
       {/* Users List */}
       <div className="flex-1 overflow-y-auto">

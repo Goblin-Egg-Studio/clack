@@ -24,6 +24,7 @@ interface ClackContextType {
   sendRoomMessage: (content: string) => Promise<void>
   authenticate: (token: string, user: User) => Promise<void>
   loadMessages: (otherUserId: number) => Promise<void>
+  refreshUsers: () => Promise<void>
   client: any
 }
 

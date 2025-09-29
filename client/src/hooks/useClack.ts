@@ -675,6 +675,16 @@ export function useClack() {
         }
       }, [client, currentUser, currentRoom])
 
+      const refreshUsers = useCallback(async (): Promise<void> => {
+        try {
+          const users = await client.getAllUsers()
+          setUsers(users)
+          console.log('useClack: Refreshed users:', users.length)
+        } catch (error) {
+          console.error('Failed to refresh users:', error)
+        }
+      }, [client])
+
       const authenticate = useCallback(async (token: string, user: User): Promise<void> => {
         client.setToken(token)
         setCurrentUser(user)
@@ -747,6 +757,7 @@ export function useClack() {
         loadMoreRoomMessages,
         changeRoomOwner,
         deleteRoom,
+        refreshUsers,
         
         // Client
         client

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.2 - User registration on Users page
+- **Registration**: Add user registration form directly on Users page
+- **UI**: "Register New User" button with collapsible form
+- **Integration**: Connected to AuthService with error handling and loading states
+- **Refresh**: Users list automatically refreshes after successful registration
+- **Version**: Bump to 0.6.2 (monorepo), 0.5.2 (frontend)
+
 ## 0.6.1 - Theme color customization
 - **Themes**: Add 5 color themes (blue, red, green, yellow, purple) in settings
 - **UI**: Theme color dropdown in Appearance section alongside dark mode toggle
