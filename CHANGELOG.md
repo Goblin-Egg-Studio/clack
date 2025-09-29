@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.8 - Database persistence fix
+- **Database**: Fix server startup to use CREATE TABLE IF NOT EXISTS instead of dropping tables
+- **Persistence**: Users and data now persist across deploys and restarts
+- **Bugfix**: Resolve issue where users had to re-register after every deploy
+
 ## 0.5.7 - Settings UI improvements
 - **UI**: Move "Switch between dark and light mode" description under Dark Mode toggle instead of Appearance section
 - **Settings**: Better organization of dark mode settings with clearer labeling

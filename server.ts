@@ -106,15 +106,11 @@ console.log(`📋 Registered ${providerRegistry.getProviderCount()} providers: $
 // Initialize MCP server
 const mcpServer = new MCPServerCore(db, providerRegistry);
 
-// Drop and recreate tables to ensure clean schema
-db.exec(`DROP TABLE IF EXISTS messages`);
-db.exec(`DROP TABLE IF EXISTS room_members`);
-db.exec(`DROP TABLE IF EXISTS rooms`);
-db.exec(`DROP TABLE IF EXISTS users`);
+// Create tables if they don't exist (preserve existing data)
 
-// Create tables with correct schema
+// Create tables with correct schema (only if they don't exist)
 db.exec(`
-  CREATE TABLE users (
+  CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
@@ -123,7 +119,7 @@ db.exec(`
 `);
 
 db.exec(`
-  CREATE TABLE rooms (
+  CREATE TABLE IF NOT EXISTS rooms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
@@ -134,7 +130,7 @@ db.exec(`
 `);
 
 db.exec(`
-  CREATE TABLE room_members (
+  CREATE TABLE IF NOT EXISTS room_members (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     room_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
@@ -146,7 +142,7 @@ db.exec(`
 `);
 
 db.exec(`
-  CREATE TABLE messages (
+  CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_a INTEGER,
     user_b INTEGER,
