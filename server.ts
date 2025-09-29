@@ -264,7 +264,35 @@ async function authenticateMCP(req: any, res: any, next: any) {
     const password = req.headers['x-password'] || req.headers['X-Password'];
     if (username && password) {
       console.log('MCP Auth - Trying username/password authentication');
-      const user = await authenticateUser(username, password);
+      let user = await authenticateUser(username, password);
+      
+      // If user doesn't exist, try to auto-register them
+      if (!user) {
+        console.log('MCP Auth - User not found, attempting auto-registration');
+        try {
+          // Check if user already exists (race condition protection)
+          const existingUser = db.query('SELECT id FROM users WHERE username = ?').get(username);
+          if (existingUser) {
+            // User was created between our check and now, try auth again
+            user = await authenticateUser(username, password);
+          } else {
+            // Auto-register the user
+            const passwordHash = await bcrypt.hash(password, 10);
+            const result = db.query(`
+              INSERT INTO users (username, password_hash) 
+              VALUES (?, ?) 
+              RETURNING id, username, created_at
+            `).get(username, passwordHash);
+            
+            console.log('MCP Auth - Auto-registered user:', result.username);
+            user = { id: result.id, username: result.username };
+          }
+        } catch (error) {
+          console.error('MCP Auth - Auto-registration failed:', error);
+          // If registration fails, continue to 401
+        }
+      }
+      
       if (user) {
         console.log('MCP Auth - Username/password authentication successful');
         req.user = { userId: user.id, username: user.username };

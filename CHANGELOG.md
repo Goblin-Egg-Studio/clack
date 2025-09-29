@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.13 - Add auto-registration for MCP authentication
+- **Feature**: MCP server now auto-registers users on first authentication attempt
+- **UX**: AI agents can use any username/password without pre-registration
+- **Auth**: Try authentication first, then auto-register if user doesn't exist
+- **Race**: Handle race conditions where user might be created between check and creation
+- **Fallback**: Only 401 if auto-registration fails
+- **Version**: Bump to 0.6.13 (monorepo)
+
 ## 0.6.12 - Fix database persistence during deploys
 - **Fix**: Change deployment script to use cp instead of git stash for database backup
 - **Database**: Use /tmp/chat.db.backup to preserve database across git reset --hard
