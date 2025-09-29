@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.19 - Fix import path for shared validation in MCP server
+- **Fix**: Correct import path for shared validation module in MCP tool registry
+- **Server**: Fix 502 error caused by incorrect module import path
+- **Version**: Bump to 0.6.19 (monorepo)
+
+## 0.6.18 - Add shared MCP argument validation system
+- **Feature**: Create shared validation system for MCP tool arguments
+- **Validation**: Add comprehensive argument validation for all MCP tools
+- **Client**: Add client-side validation before sending MCP requests
+- **Server**: Replace individual tool validation with shared validation system
+- **Schema**: Define validation schemas for all MCP tools with type checking
+- **UX**: Better error messages for validation failures
+- **Version**: Bump to 0.6.18 (monorepo)
+
 ## 0.6.17 - Add detailed headers debugging for MCP tool registry
 - **Debug**: Add JSON.stringify logging to see exact headers being passed to MCP tools
 - **Debug**: Log individual header properties (userId, username) in MCP tool registry
