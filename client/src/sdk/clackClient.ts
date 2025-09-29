@@ -285,6 +285,9 @@ export class ClackClient extends EventEmitter {
     // Add Bearer token if available
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`
+      console.log('MCP Request - Token being sent:', this.token.substring(0, 20) + '...')
+    } else {
+      console.log('MCP Request - No token available')
     }
 
     // Add username/password authentication in headers
