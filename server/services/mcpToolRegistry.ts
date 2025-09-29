@@ -245,45 +245,50 @@ export async function executeToolByName(
 
       switch (toolName) {
         case 'send_message': {
-          const { senderId, otherUserId, content } = toolArgs;
+          const { otherUserId, content } = toolArgs;
+          const senderId = headers.userId;
           if (!senderId || !otherUserId || !content) {
-            throw new Error('senderId, otherUserId and content are required');
+            throw new Error('otherUserId and content are required, and user must be authenticated');
           }
           
           return await provider.sendMessage(senderId, otherUserId, content);
         }
 
         case 'create_room': {
-          const { name, description, createdBy } = toolArgs;
+          const { name, description } = toolArgs;
+          const createdBy = headers.userId;
           if (!name || !createdBy) {
-            throw new Error('name and createdBy are required');
+            throw new Error('name is required, and user must be authenticated');
           }
           
           return await provider.createRoom(name, description || '', createdBy);
         }
 
         case 'join_room': {
-          const { roomId, userId } = toolArgs;
+          const { roomId } = toolArgs;
+          const userId = headers.userId;
           if (!roomId || !userId) {
-            throw new Error('roomId and userId are required');
+            throw new Error('roomId is required, and user must be authenticated');
           }
           
           return await provider.joinRoom(roomId, userId);
         }
 
         case 'leave_room': {
-          const { roomId, userId } = toolArgs;
+          const { roomId } = toolArgs;
+          const userId = headers.userId;
           if (!roomId || !userId) {
-            throw new Error('roomId and userId are required');
+            throw new Error('roomId is required, and user must be authenticated');
           }
           
           return await provider.leaveRoom(roomId, userId);
         }
 
         case 'send_room_message': {
-          const { senderId, roomId, content } = toolArgs;
+          const { roomId, content } = toolArgs;
+          const senderId = headers.userId;
           if (!senderId || !roomId || !content) {
-            throw new Error('senderId, roomId and content are required');
+            throw new Error('roomId and content are required, and user must be authenticated');
           }
           
           return await provider.sendRoomMessage(senderId, roomId, content);

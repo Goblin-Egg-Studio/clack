@@ -92,7 +92,7 @@ app.post('/admin/deploy', async (req, res) => {
 });
 
 // Initialize SQLite database
-const db = new Database('chat.db');
+const db = new Database(process.env.DATABASE_URL || 'chat.db');
 
 // Initialize chat service
 const chatService = new ChatService(db);

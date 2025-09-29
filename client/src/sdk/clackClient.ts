@@ -312,28 +312,28 @@ export class ClackClient extends EventEmitter {
   }
 
   // Chat service methods
-  async sendMessage(senderId: number, otherUserId: number, content: string): Promise<Message> {
-    const result = await this.makeMCPRequest('send_message', { senderId, otherUserId, content })
+  async sendMessage(otherUserId: number, content: string): Promise<Message> {
+    const result = await this.makeMCPRequest('send_message', { otherUserId, content })
     return result.content[0].text ? JSON.parse(result.content[0].text).message : null
   }
 
-  async createRoom(name: string, description: string, createdBy: number): Promise<Room> {
-    const result = await this.makeMCPRequest('create_room', { name, description, createdBy })
+  async createRoom(name: string, description: string): Promise<Room> {
+    const result = await this.makeMCPRequest('create_room', { name, description })
     return result.content[0].text ? JSON.parse(result.content[0].text).room : null
   }
 
-  async joinRoom(roomId: number, userId: number): Promise<boolean> {
-    const result = await this.makeMCPRequest('join_room', { roomId, userId })
+  async joinRoom(roomId: number): Promise<boolean> {
+    const result = await this.makeMCPRequest('join_room', { roomId })
     return result.content[0].text ? JSON.parse(result.content[0].text).success : false
   }
 
-  async leaveRoom(roomId: number, userId: number): Promise<boolean> {
-    const result = await this.makeMCPRequest('leave_room', { roomId, userId })
+  async leaveRoom(roomId: number): Promise<boolean> {
+    const result = await this.makeMCPRequest('leave_room', { roomId })
     return result.content[0].text ? JSON.parse(result.content[0].text).success : false
   }
 
-  async sendRoomMessage(senderId: number, roomId: number, content: string): Promise<Message> {
-    const result = await this.makeMCPRequest('send_room_message', { senderId, roomId, content })
+  async sendRoomMessage(roomId: number, content: string): Promise<Message> {
+    const result = await this.makeMCPRequest('send_room_message', { roomId, content })
     return result.content[0].text ? JSON.parse(result.content[0].text).message : null
   }
 

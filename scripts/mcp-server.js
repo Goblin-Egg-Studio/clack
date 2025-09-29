@@ -13,7 +13,7 @@ import { MCPProviderRegistry } from '../server/services/providerRegistry.js';
 import bcrypt from 'bcryptjs';
 
 // Initialize database and services
-const db = new Database('./data/chat.db');
+const db = new Database(process.env.DATABASE_URL || './chat.db');
 const chatService = new ChatService(db);
 const providerRegistry = new MCPProviderRegistry();
 providerRegistry.addProvider('chat', new ChatMCPProvider(chatService));

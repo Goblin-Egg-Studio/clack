@@ -460,7 +460,7 @@ export function useClack() {
     setIsSendingMessage(true)
     
     try {
-      await client.sendMessage(currentUser.id, currentChatUser.id, content)
+      await client.sendMessage(currentChatUser.id, content)
       // Message will come via SSE
     } catch (error) {
       throw error
@@ -511,7 +511,7 @@ export function useClack() {
         
         setIsLoading(true)
         try {
-          const room = await client.createRoom(name, description, currentUser.id)
+          const room = await client.createRoom(name, description)
           return room
         } finally {
           setIsLoading(false)
@@ -523,7 +523,7 @@ export function useClack() {
         
         setIsLoading(true)
         try {
-          const success = await client.joinRoom(roomId, currentUser.id)
+          const success = await client.joinRoom(roomId)
           return success
         } finally {
           setIsLoading(false)
@@ -535,7 +535,7 @@ export function useClack() {
         
         setIsLoading(true)
         try {
-          const success = await client.leaveRoom(roomId, currentUser.id)
+          const success = await client.leaveRoom(roomId)
           return success
         } finally {
           setIsLoading(false)
@@ -666,7 +666,7 @@ export function useClack() {
         setIsSendingMessage(true)
         
         try {
-          await client.sendRoomMessage(currentUser.id, currentRoom.id, content)
+          await client.sendRoomMessage(currentRoom.id, content)
           // Message will come via SSE
         } catch (error) {
           throw error
