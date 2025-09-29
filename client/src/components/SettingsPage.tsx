@@ -65,7 +65,7 @@ export function SettingsPage() {
 
       <div className="max-w-5xl mx-auto my-6 bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-md font-semibold text-gray-900">Appearance</h3>
+          <h3 className="text-md font-semibold text-gray-900">Dark Mode</h3>
           <p className="text-sm text-gray-600">Switch between dark and light mode</p>
         </div>
         <div className="px-6 py-4">
