@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.4 - Fix user registration authentication bug
+- **Bugfix**: Fix critical bug where registering a new user automatically logged you in as that user
+- **Auth**: Registration now keeps you logged in as your original account instead of switching to new user
+- **Security**: Prevents accidental account switching when creating additional users
+- **Version**: Bump to 0.6.4 (monorepo)
+
 ## 0.6.3 - Fix join room button and message streaming
 - **Bugfix**: Fix join room button not updating state after successful join
 - **Bugfix**: Fix missing message streaming after sending room messages

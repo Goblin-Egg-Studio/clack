@@ -44,9 +44,8 @@ export class AuthService {
       throw new Error(result.error || 'Registration failed');
     }
 
-    // Store token
-    this.token = result.token;
-    localStorage.setItem('clack_token', result.token);
+    // DO NOT store token - registration should not automatically log you in
+    // The caller can decide whether to log in as the new user or not
     
     return result;
   }

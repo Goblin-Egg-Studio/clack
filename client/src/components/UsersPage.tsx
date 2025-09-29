@@ -35,6 +35,8 @@ export function UsersPage() {
       setShowRegistrationForm(false)
       
       console.log('User registered successfully:', result.user)
+      // Note: We do NOT automatically log in as the new user
+      // The current user remains logged in as themselves
     } catch (error: any) {
       setRegistrationError(error.message || 'Registration failed')
     } finally {

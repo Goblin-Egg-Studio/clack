@@ -235,6 +235,7 @@ export async function executeToolByName(
   headers: Record<string, any> = {}
 ): Promise<any> {
   console.log(`[MCP-Tools] Executing tool: ${toolName} with args:`, toolArgs);
+  console.log(`[MCP-Tools] Headers received:`, headers);
 
   // For now, we'll use the 'chat' provider by default
   // In the future, tools could specify which provider to use
@@ -247,6 +248,7 @@ export async function executeToolByName(
         case 'send_message': {
           const { otherUserId, content } = toolArgs;
           const senderId = headers.userId;
+          console.log(`[MCP-Tools] send_message - senderId: ${senderId}, otherUserId: ${otherUserId}, content: ${content}`);
           if (!senderId || !otherUserId || !content) {
             throw new Error('otherUserId and content are required, and user must be authenticated');
           }
