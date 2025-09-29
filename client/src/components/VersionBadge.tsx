@@ -5,7 +5,7 @@ export function VersionBadge() {
   const [text, setText] = React.useState('')
 
   React.useEffect(() => {
-    versionService.getVersion().then(v => {
+    versionService.getVersionInfo().then(v => {
       const display = v.clientVersion || v.monorepoVersion || ''
       setText(display ? `v${display}` : '')
     }).catch(() => setText(''))

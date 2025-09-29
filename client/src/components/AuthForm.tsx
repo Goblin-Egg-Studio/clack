@@ -18,7 +18,7 @@ export function AuthForm({ authService, onAuthSuccess }: AuthFormProps) {
   const [clientVersion, setClientVersion] = useState<string>('');
 
   useEffect(() => {
-    versionService.getVersion().then(v => {
+    versionService.getVersionInfo().then(v => {
       const display = v.clientVersion || v.monorepoVersion || ''
       setClientVersion(display)
     }).catch(() => setClientVersion(''))
