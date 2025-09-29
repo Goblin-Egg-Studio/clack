@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.8 - Add version red alert for version mismatches
+- **UI**: Version badge turns red when new version is detected after reconnecting
+- **UX**: Visual indicator shows when user needs to refresh for latest version
+- **Real-time**: Listens to SSE version updates and compares with initial version
+- **Styling**: Red background, text, and border when version mismatch detected
+- **Version**: Bump to 0.6.8 (monorepo)
+
 ## 0.6.7 - Add debugging for message sending authentication issue
 - **Debug**: Add server-side debugging to track authentication and header passing for MCP requests
 - **Debug**: Log req.user object and headers being passed to MCP tool execution
