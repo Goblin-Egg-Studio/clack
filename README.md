@@ -78,6 +78,8 @@ chmod +x scripts/setup-linode.sh
 
 If you don't care about automatically deploying updates when the main branch in your repository, then you're done! Otherwise, continue below.
 
+**Note**: The app uses LaunchDarkly's EventSource client for reliable server-sent events with 60s read timeouts and automatic reconnection.
+
 2) Get your Linode API credentials
 ```bash
 # Get your Linode API token:

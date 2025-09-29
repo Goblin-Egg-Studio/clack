@@ -301,6 +301,10 @@ export function useClack() {
         client.on('room_message:new', handleNewRoomMessage)
         client.on('connection:open', handleConnectionOpen)
         client.on('connection:close', handleConnectionClose)
+        client.on('connection:error', (error) => {
+          console.error('useClack: SSE connection error:', error)
+          setIsConnected(false)
+        })
 
         return () => {
           client.off('message:new', handleNewMessage)
@@ -317,6 +321,10 @@ export function useClack() {
           client.off('room_message:new', handleNewRoomMessage)
           client.off('connection:open', handleConnectionOpen)
           client.off('connection:close', handleConnectionClose)
+          client.off('connection:error', (error) => {
+            console.error('useClack: SSE connection error:', error)
+            setIsConnected(false)
+          })
           client.disconnect()
         }
   }, [client])
