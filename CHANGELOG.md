@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.7 - Settings UI improvements
+- **UI**: Move "Switch between dark and light mode" description under Dark Mode toggle instead of Appearance section
+- **Settings**: Better organization of dark mode settings with clearer labeling
+
 ## 0.5.6 - Database persistence and version display improvements
 - **Database**: Fix systemd service to only update code when changes exist, preserving database across restarts
 - **Version**: Display both repo and client versions in VersionBadge and login screen

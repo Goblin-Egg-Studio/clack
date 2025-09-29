@@ -65,12 +65,14 @@ export function SettingsPage() {
 
       <div className="max-w-5xl mx-auto my-6 bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-md font-semibold text-gray-900">Dark Mode</h3>
-          <p className="text-sm text-gray-600">Switch between dark and light mode</p>
+          <h3 className="text-md font-semibold text-gray-900">Appearance</h3>
         </div>
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-900">Enable Dark Mode</span>
+            <div>
+              <span className="text-sm text-gray-900">Dark Mode</span>
+              <p className="text-xs text-gray-600">Switch between dark and light mode</p>
+            </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
