@@ -248,8 +248,10 @@ export async function executeToolByName(
         case 'send_message': {
           const { otherUserId, content } = toolArgs;
           const senderId = headers.userId;
-          console.log(`[MCP-Tools] Headers received:`, headers);
+          console.log(`[MCP-Tools] Headers received:`, JSON.stringify(headers, null, 2));
           console.log(`[MCP-Tools] send_message - senderId: ${senderId}, otherUserId: ${otherUserId}, content: ${content}`);
+          console.log(`[MCP-Tools] headers.userId: ${headers.userId}`);
+          console.log(`[MCP-Tools] headers.username: ${headers.username}`);
           if (!senderId || !otherUserId || !content) {
             throw new Error('Missing required field: senderId');
           }

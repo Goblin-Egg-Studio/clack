@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.17 - Add detailed headers debugging for MCP tool registry
+- **Debug**: Add JSON.stringify logging to see exact headers being passed to MCP tools
+- **Debug**: Log individual header properties (userId, username) in MCP tool registry
+- **Debug**: Track exactly what headers are received by send_message tool
+- **Version**: Bump to 0.6.17 (monorepo)
+
+## 0.6.16 - Add client-side debugging for MCP token authentication
+- **Debug**: Add console logging to track token being sent with MCP requests
+- **Debug**: Log first 20 characters of token to verify it's being sent
+- **Debug**: Log when no token is available for MCP requests
+- **Version**: Bump to 0.6.16 (monorepo)
+
 ## 0.6.15 - Fix authentication check in MCP requests
 - **Fix**: Add proper authentication validation before processing MCP requests
 - **Debug**: Check if req.user exists and has userId before proceeding
