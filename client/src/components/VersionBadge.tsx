@@ -6,8 +6,10 @@ export function VersionBadge() {
 
   React.useEffect(() => {
     versionService.getVersionInfo().then(v => {
-      const display = v.clientVersion || v.monorepoVersion || ''
-      setText(display ? `v${display}` : '')
+      const parts = []
+      if (v.monorepoVersion) parts.push(`repo:${v.monorepoVersion}`)
+      if (v.clientVersion) parts.push(`client:${v.clientVersion}`)
+      setText(parts.length > 0 ? parts.join(' | ') : '')
     }).catch(() => setText(''))
   }, [])
 
