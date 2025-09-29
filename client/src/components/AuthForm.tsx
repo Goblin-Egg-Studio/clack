@@ -21,7 +21,8 @@ export function AuthForm({ authService, onAuthSuccess }: AuthFormProps) {
     versionService.getVersionInfo().then(v => {
       const parts = []
       if (v.monorepoVersion) parts.push(`repo:${v.monorepoVersion}`)
-      if (v.clientVersion) parts.push(`client:${v.clientVersion}`)
+      if (v.frontendVersion) parts.push(`frontend:${v.frontendVersion}`)
+      if (v.sdkVersion) parts.push(`sdk:${v.sdkVersion}`)
       setVersionInfo(parts.length > 0 ? parts.join(' | ') : '')
     }).catch(() => setVersionInfo(''))
   }, [])

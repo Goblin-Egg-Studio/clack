@@ -28,15 +28,19 @@ app.get('/__version', async (_req, res) => {
   try {
     const rootPkgPath = path.join(process.cwd(), 'package.json');
     const clientPkgPath = path.join(process.cwd(), 'client', 'package.json');
-    const [rootPkgRaw, clientPkgRaw] = await Promise.all([
+    const sdkPkgPath = path.join(process.cwd(), 'sdk', 'package.json');
+    const [rootPkgRaw, clientPkgRaw, sdkPkgRaw] = await Promise.all([
       fs.readFile(rootPkgPath, 'utf8'),
-      fs.readFile(clientPkgPath, 'utf8').catch(() => 'null')
+      fs.readFile(clientPkgPath, 'utf8').catch(() => 'null'),
+      fs.readFile(sdkPkgPath, 'utf8').catch(() => 'null')
     ]);
     const rootPkg = JSON.parse(rootPkgRaw);
     const clientPkg = clientPkgRaw !== 'null' ? JSON.parse(clientPkgRaw) : null;
+    const sdkPkg = sdkPkgRaw !== 'null' ? JSON.parse(sdkPkgRaw) : null;
     res.json({
       monorepoVersion: rootPkg.version ?? null,
-      clientVersion: clientPkg?.version ?? null,
+      frontendVersion: clientPkg?.version ?? null,
+      sdkVersion: sdkPkg?.version ?? null,
       name: rootPkg.name ?? 'clack'
     });
   } catch (e) {

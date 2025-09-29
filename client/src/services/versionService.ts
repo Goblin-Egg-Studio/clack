@@ -1,6 +1,7 @@
 export interface VersionInfo {
   monorepoVersion: string | null
-  clientVersion: string | null
+  frontendVersion: string | null
+  sdkVersion: string | null
   name: string | null
 }
 

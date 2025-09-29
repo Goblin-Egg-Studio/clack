@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.9 - SDK version tracking
+- **Version**: Add separate SDK version tracking alongside frontend version
+- **UI**: Display both frontend and SDK versions in VersionBadge, AuthForm, and VersionPage
+- **SDK**: Create separate SDK package with its own version
+- **Format**: Show `repo:X.X.X | frontend:X.X.X | sdk:X.X.X` format
+
 ## 0.5.8 - Database persistence fix
 - **Database**: Fix server startup to use CREATE TABLE IF NOT EXISTS instead of dropping tables
 - **Persistence**: Users and data now persist across deploys and restarts

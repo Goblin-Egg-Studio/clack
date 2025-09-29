@@ -79,8 +79,12 @@ export function VersionPage() {
                 <span className="text-sm text-gray-600">{versionInfo.monorepoVersion || 'Unknown'}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-900">Client Version</span>
-                <span className="text-sm text-gray-600">{versionInfo.clientVersion || 'Unknown'}</span>
+                <span className="text-sm font-medium text-gray-900">Frontend Version</span>
+                <span className="text-sm text-gray-600">{versionInfo.frontendVersion || 'Unknown'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                <span className="text-sm font-medium text-gray-900">SDK Version</span>
+                <span className="text-sm text-gray-600">{versionInfo.sdkVersion || 'Unknown'}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-sm font-medium text-gray-900">Last Updated</span>
