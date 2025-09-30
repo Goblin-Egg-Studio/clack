@@ -112,6 +112,28 @@ export function ChatView() {
         </h2>
       </div>
       
+      {/* Message Input */}
+      <div className="bg-white border-b border-gray-200 p-6">
+        <form onSubmit={handleSendMessage} className="flex space-x-4">
+          <input
+            ref={messageInputRef}
+            type="text"
+            placeholder="Type a message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            disabled={isSendingMessage}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+          <button 
+            type="submit" 
+            disabled={isSendingMessage || !newMessage.trim()}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {isSendingMessage ? 'Sending...' : 'Send'}
+          </button>
+        </form>
+      </div>
+      
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4" onScroll={handleScroll}>
         {isLoadingMore && (
@@ -143,28 +165,6 @@ export function ChatView() {
             </div>
           )
         })}
-      </div>
-      
-      {/* Message Input */}
-      <div className="bg-white border-t border-gray-200 p-6">
-        <form onSubmit={handleSendMessage} className="flex space-x-4">
-          <input
-            ref={messageInputRef}
-            type="text"
-            placeholder="Type a message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            disabled={isSendingMessage}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-          />
-          <button 
-            type="submit" 
-            disabled={isSendingMessage || !newMessage.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {isSendingMessage ? 'Sending...' : 'Send'}
-          </button>
-        </form>
       </div>
     </div>
   )
