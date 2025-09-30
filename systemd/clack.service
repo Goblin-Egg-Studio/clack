@@ -4,17 +4,17 @@ After=network.target
 
 [Service]
 Type=simple
-User=clack
-Group=clack
-WorkingDirectory=/opt/clack
+User=%i
+Group=%i
+WorkingDirectory=%h/clack
 # Only update code if there are changes (preserve database)
-ExecStartPre=/bin/bash -lc 'cd /opt/clack && git fetch origin && if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then git reset --hard origin/main && export PATH="/home/clack/.bun/bin:$PATH" && bun install --no-progress --frozen-lockfile && bun run build; fi'
-ExecStart=/home/clack/.bun/bin/bun run server.ts
+ExecStartPre=/bin/bash -lc 'cd %h/clack && git fetch origin && if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then git reset --hard origin/main && export PATH="%h/.bun/bin:$PATH" && bun install --no-progress --frozen-lockfile && bun run build; fi'
+ExecStart=%h/.bun/bin/bun run server.ts
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=3000
-Environment=DATABASE_URL=/opt/clack/data/chat.db
+Environment=DATABASE_URL=%h/clack/data/chat.db
 Environment=JWT_SECRET=change-this-jwt-secret-in-production
 Environment=CORS_ORIGIN=http://YOUR_LINODE_IP
 StandardOutput=journal

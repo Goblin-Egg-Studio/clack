@@ -23,46 +23,43 @@ for p in $REQ; do
   fi
 done
 
-# Create clack user (if missing)
-if ! id clack &>/dev/null; then
-  log "Creating clack user"; sudo useradd -m -s /bin/bash clack
-else
-  log "clack user exists"
-fi
-sudo mkdir -p /home/clack/.ssh && sudo chown -R clack:clack /home/clack
+# Use current user (no additional user creation)
+CURRENT_USER=$(whoami)
+log "Using current user: $CURRENT_USER"
 
-# Install Bun for clack
-if ! sudo -u clack bash -lc 'command -v bun >/dev/null 2>&1'; then
-  log "Installing Bun"; sudo -u clack bash -lc 'curl -fsSL https://bun.sh/install | bash'
+# Install Bun for current user
+if ! command -v bun >/dev/null 2>&1; then
+  log "Installing Bun"; curl -fsSL https://bun.sh/install | bash
 else
   log "Bun already installed"
 fi
 # Ensure PATH
-sudo -u clack bash -lc 'grep -q "\.bun/bin" ~/.bashrc || echo "export PATH=\"$HOME/.bun/bin:$PATH\"" >> ~/.bashrc'
+grep -q "\.bun/bin" ~/.bashrc || echo "export PATH=\"$HOME/.bun/bin:$PATH\"" >> ~/.bashrc
 
-# Project directory
-sudo mkdir -p /opt/clack && sudo chown -R clack:clack /opt/clack
+# Project directory (use current user's home)
+APP_DIR="$HOME/clack"
+mkdir -p "$APP_DIR"
 
 # Clone or update repo
-if [ -d /opt/clack/.git ]; then
-  log "Updating repository"; sudo -u clack bash -lc 'cd /opt/clack && git fetch origin && git reset --hard origin/main'
+if [ -d "$APP_DIR/.git" ]; then
+  log "Updating repository"; cd "$APP_DIR" && git fetch origin && git reset --hard origin/main
 else
-  log "Cloning repository"; sudo -u clack git clone https://github.com/Goblin-Egg-Studio/clack.git /opt/clack
+  log "Cloning repository"; git clone https://github.com/Goblin-Egg-Studio/clack.git "$APP_DIR"
 fi
 
-# Install deps and build (root and client)
-log "Installing dependencies"; sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun install'
-log "Installing client dependencies"; sudo -u clack bash -lc 'cd /opt/clack/client && export PATH="$HOME/.bun/bin:$PATH" && bun install'
-log "Building application"; sudo -u clack bash -lc 'cd /opt/clack && export PATH="$HOME/.bun/bin:$PATH" && bun run build'
+# Install deps and build
+log "Installing dependencies"; cd "$APP_DIR" && export PATH="$HOME/.bun/bin:$PATH" && bun install
+log "Installing client dependencies"; cd "$APP_DIR/client" && export PATH="$HOME/.bun/bin:$PATH" && bun install
+log "Building application"; cd "$APP_DIR" && export PATH="$HOME/.bun/bin:$PATH" && bun run build
 
 # Systemd service
-if [ ! -f "/etc/systemd/system/clack.service" ] || ! cmp -s /opt/clack/systemd/clack.service /etc/systemd/system/clack.service; then
-  log "Updating systemd unit"; sudo cp /opt/clack/systemd/clack.service /etc/systemd/system/clack.service
+if [ ! -f "/etc/systemd/system/clack.service" ] || ! cmp -s "$APP_DIR/systemd/clack.service" /etc/systemd/system/clack.service; then
+  log "Updating systemd unit"; sudo cp "$APP_DIR/systemd/clack.service" /etc/systemd/system/clack.service
 else
   log "Systemd unit already up to date"
 fi
 sudo systemctl daemon-reload
-sudo systemctl enable clack || true
+sudo systemctl enable clack@$CURRENT_USER || true
 
 # Nginx reverse proxy (IP default)
 if [ ! -f /etc/nginx/sites-available/clack ]; then
@@ -90,34 +87,32 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl restart nginx
 
 # Database file (persistent location outside git repo)
-sudo mkdir -p /opt/clack/data
-sudo chown clack:clack /opt/clack/data
-if [ ! -f /opt/clack/data/chat.db ]; then
+mkdir -p "$APP_DIR/data"
+if [ ! -f "$APP_DIR/data/chat.db" ]; then
   log "Creating persistent database..."
-  sudo -u clack touch /opt/clack/data/chat.db
-  sudo chown clack:clack /opt/clack/data/chat.db
-  sudo chmod 664 /opt/clack/data/chat.db
+  touch "$APP_DIR/data/chat.db"
+  chmod 664 "$APP_DIR/data/chat.db"
 else
   log "Database already exists, preserving data"
 fi
 
 # Install watchdog service
 log "Installing watchdog service..."
-sudo cp /opt/clack/systemd/clack-watchdog.service /etc/systemd/system/
-sudo cp /opt/clack/systemd/clack-watchdog.timer /etc/systemd/system/
+sudo cp "$APP_DIR/systemd/clack-watchdog.service" /etc/systemd/system/
+sudo cp "$APP_DIR/systemd/clack-watchdog.timer" /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable clack-watchdog.timer
 sudo systemctl start clack-watchdog.timer
 
 # Start service
-if ! systemctl is-active --quiet clack; then
-  log "Starting clack"; sudo systemctl start clack
+if ! systemctl is-active --quiet clack@$CURRENT_USER; then
+  log "Starting clack"; sudo systemctl start clack@$CURRENT_USER
 else
   log "Clack already running"
 fi
 
 ok "Setup complete."
-echo "Service status:"; sudo systemctl status clack --no-pager | sed -n '1,12p'
+echo "Service status:"; sudo systemctl status clack@$CURRENT_USER --no-pager | sed -n '1,12p'
 echo
 IP=$(curl -s ifconfig.me || echo "YOUR_IP")
 echo "Visit: http://${IP}/  |  Version: http://${IP}/__version"
