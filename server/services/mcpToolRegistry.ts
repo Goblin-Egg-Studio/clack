@@ -1,7 +1,6 @@
 import { Database } from 'bun:sqlite';
 import { MCPProvider } from './mcpProvider.js';
 import { ProviderRegistry } from './providerRegistry.js';
-import { validateMCPToolArguments, getMCPToolSchema } from '../../../shared/validation/mcpToolValidation.js';
 
 export interface MCPTool {
   name: string;
@@ -245,23 +244,17 @@ export async function executeToolByName(
     throw new Error('Chat provider not found');
   }
 
-      // Validate arguments using shared validation
-      const validation = validateMCPToolArguments(toolName, toolArgs);
-      if (!validation.isValid) {
-        const errorMessage = validation.errors.map(e => `${e.field}: ${e.message}`).join(', ');
-        throw new Error(`Validation failed: ${errorMessage}`);
-      }
-
-      // Check authentication
-      if (!headers.userId) {
-        throw new Error('Authentication required: userId not found in headers');
-      }
-
       switch (toolName) {
         case 'send_message': {
           const { otherUserId, content } = toolArgs;
           const senderId = headers.userId;
+          console.log(`[MCP-Tools] Headers received:`, JSON.stringify(headers, null, 2));
           console.log(`[MCP-Tools] send_message - senderId: ${senderId}, otherUserId: ${otherUserId}, content: ${content}`);
+          console.log(`[MCP-Tools] headers.userId: ${headers.userId}`);
+          console.log(`[MCP-Tools] headers.username: ${headers.username}`);
+          if (!senderId || !otherUserId || !content) {
+            throw new Error('Missing required field: senderId');
+          }
           
           return await provider.sendMessage(senderId, otherUserId, content);
         }
@@ -269,6 +262,9 @@ export async function executeToolByName(
         case 'create_room': {
           const { name, description } = toolArgs;
           const createdBy = headers.userId;
+          if (!name || !createdBy) {
+            throw new Error('name is required, and user must be authenticated');
+          }
           
           return await provider.createRoom(name, description || '', createdBy);
         }
@@ -276,6 +272,9 @@ export async function executeToolByName(
         case 'join_room': {
           const { roomId } = toolArgs;
           const userId = headers.userId;
+          if (!roomId || !userId) {
+            throw new Error('roomId is required, and user must be authenticated');
+          }
           
           return await provider.joinRoom(roomId, userId);
         }
@@ -283,6 +282,9 @@ export async function executeToolByName(
         case 'leave_room': {
           const { roomId } = toolArgs;
           const userId = headers.userId;
+          if (!roomId || !userId) {
+            throw new Error('roomId is required, and user must be authenticated');
+          }
           
           return await provider.leaveRoom(roomId, userId);
         }
@@ -290,6 +292,9 @@ export async function executeToolByName(
         case 'send_room_message': {
           const { roomId, content } = toolArgs;
           const senderId = headers.userId;
+          if (!senderId || !roomId || !content) {
+            throw new Error('roomId and content are required, and user must be authenticated');
+          }
           
           return await provider.sendRoomMessage(senderId, roomId, content);
         }
@@ -297,24 +302,36 @@ export async function executeToolByName(
         // Time range getters
         case 'get_users_by_time_range': {
           const { startTime, endTime } = toolArgs;
+          if (!startTime || !endTime) {
+            throw new Error('startTime and endTime are required');
+          }
           
           return await provider.getUsersByTimeRange(startTime, endTime);
         }
 
         case 'get_rooms_by_time_range': {
           const { startTime, endTime } = toolArgs;
+          if (!startTime || !endTime) {
+            throw new Error('startTime and endTime are required');
+          }
           
           return await provider.getRoomsByTimeRange(startTime, endTime);
         }
 
         case 'get_messages_by_time_range': {
           const { startTime, endTime, userId } = toolArgs;
+          if (!startTime || !endTime || !userId) {
+            throw new Error('startTime, endTime and userId are required');
+          }
           
           return await provider.getMessagesByTimeRange(startTime, endTime, userId);
         }
 
         case 'get_room_messages_by_time_range': {
           const { startTime, endTime, roomId } = toolArgs;
+          if (!startTime || !endTime || !roomId) {
+            throw new Error('startTime, endTime and roomId are required');
+          }
           
           return await provider.getRoomMessagesByTimeRange(startTime, endTime, roomId);
         }
@@ -322,42 +339,63 @@ export async function executeToolByName(
         // Index range getters
         case 'get_users_by_index_range': {
           const { startIndex, endIndex } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined) {
+            throw new Error('startIndex and endIndex are required');
+          }
           
           return await provider.getUsersByIndexRange(startIndex, endIndex);
         }
 
         case 'get_rooms_by_index_range': {
           const { startIndex, endIndex } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined) {
+            throw new Error('startIndex and endIndex are required');
+          }
           
           return await provider.getRoomsByIndexRange(startIndex, endIndex);
         }
 
         case 'get_messages_by_index_range': {
           const { startIndex, endIndex, userId } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined || !userId) {
+            throw new Error('startIndex, endIndex and userId are required');
+          }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
         }
 
         case 'get_room_messages_by_index_range': {
           const { startIndex, endIndex, roomId } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined || !roomId) {
+            throw new Error('startIndex, endIndex and roomId are required');
+          }
           
           return await provider.getRoomMessagesByIndexRange(startIndex, endIndex, roomId);
         }
 
         case 'get_user_rooms': {
           const { userId } = toolArgs;
+          if (!userId) {
+            throw new Error('userId is required');
+          }
           
           return await provider.getUserRooms(userId);
         }
 
         case 'change_room_owner': {
           const { roomId, newOwnerId, currentOwnerId } = toolArgs;
+          if (!roomId || !newOwnerId || !currentOwnerId) {
+            throw new Error('roomId, newOwnerId, and currentOwnerId are required');
+          }
           
           return await provider.changeRoomOwner(roomId, newOwnerId, currentOwnerId);
         }
 
         case 'delete_room': {
           const { roomId, ownerId } = toolArgs;
+          if (!roomId || !ownerId) {
+            throw new Error('roomId and ownerId are required');
+          }
           
           return await provider.deleteRoom(roomId, ownerId);
         }
