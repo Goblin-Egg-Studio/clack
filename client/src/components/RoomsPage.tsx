@@ -93,9 +93,17 @@ export function RoomsPage() {
     <div className="flex-1 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Chat Rooms</h2>
-          <p className="text-sm text-gray-600">Browse and manage available chat rooms</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Chat Rooms</h2>
+            <p className="text-sm text-gray-600">Browse and manage available chat rooms</p>
+          </div>
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            {showCreateForm ? 'Cancel' : '+ Create Room'}
+          </button>
         </div>
       </div>
 
@@ -150,17 +158,6 @@ export function RoomsPage() {
           </div>
         ) : (
           <div className="p-6">
-            {/* Create Room Button - only show when form is not visible */}
-            {!showCreateForm && (
-              <div className="mb-4">
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                >
-                  Create Room
-                </button>
-              </div>
-            )}
             
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
