@@ -63,6 +63,7 @@ export function useClack() {
   // Refs to avoid stale closures
   const currentChatUserRef = useRef<User | null>(null)
   const currentUserRef = useRef<User | null>(null)
+  const currentRoomRef = useRef<Room | null>(null)
   const lastVersionRef = useRef<VersionInfo | null>(null)
 
   // Update refs when state changes
@@ -74,10 +75,59 @@ export function useClack() {
     currentUserRef.current = currentUser
   }, [currentUser])
 
+  useEffect(() => {
+    currentRoomRef.current = currentRoom
+  }, [currentRoom])
+
   // Helper function to create a consistent key for user pairs
   const getUserPairKey = (userA: number, userB: number): string => {
     return userA < userB ? `${userA}-${userB}` : `${userB}-${userA}`
   }
+
+  // JSON Patch applier for dataTree
+  const applyJSONPatch = useCallback((patches: any[]) => {
+    setDataTree(prev => {
+      let next = { ...prev }
+      patches.forEach(patch => {
+        if (patch.op === 'add' && patch.path && patch.value !== undefined) {
+          const pathParts = patch.path.split('/').filter(Boolean)
+          if (pathParts.length >= 2) {
+            const [type, id] = pathParts
+            if (type === 'users' && pathParts.length === 2) {
+              next.users = { ...next.users, [id]: patch.value }
+            } else if (type === 'rooms' && pathParts.length === 2) {
+              next.rooms = { ...next.rooms, [id]: patch.value }
+            } else if (type === 'users' && pathParts.length === 4 && pathParts[2] === 'messages') {
+              const userId = pathParts[1]
+              const messageId = pathParts[3]
+              if (next.users[userId]) {
+                next.users = {
+                  ...next.users,
+                  [userId]: {
+                    ...next.users[userId],
+                    messages: { ...next.users[userId].messages, [messageId]: patch.value }
+                  }
+                }
+              }
+            } else if (type === 'rooms' && pathParts.length === 4 && pathParts[2] === 'messages') {
+              const roomId = pathParts[1]
+              const messageId = pathParts[3]
+              if (next.rooms[roomId]) {
+                next.rooms = {
+                  ...next.rooms,
+                  [roomId]: {
+                    ...next.rooms[roomId],
+                    messages: { ...next.rooms[roomId].messages, [messageId]: patch.value }
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
+      return next
+    })
+  }, [])
 
   // Set up event listeners
   useEffect(() => {
@@ -399,10 +449,10 @@ export function useClack() {
           })
         }
 
-        const handleNewRoomMessage = (message: Message) => {
+        const handleNewRoomMessage = (message: Message & { room_id: number }) => {
           setAllRoomMessages(prev => {
             const newMap = new Map(prev)
-            const roomMessages = newMap.get(message.room_id!) || []
+            const roomMessages = newMap.get(message.room_id) || []
             
             // Check for duplicates (optimistic updates)
             const exists = roomMessages.some(msg => 
@@ -412,7 +462,7 @@ export function useClack() {
             )
             
             if (!exists) {
-              newMap.set(message.room_id!, [...roomMessages, message])
+              newMap.set(message.room_id, [...roomMessages, message])
             }
             
             return newMap
@@ -420,7 +470,7 @@ export function useClack() {
 
           // Mirror into dataTree
           setDataTree(prev => {
-            const key = String(message.room_id!)
+            const key = String(message.room_id)
             const room = prev.rooms[key]
             if (!room) return prev
             return {
@@ -514,7 +564,7 @@ export function useClack() {
         client.on('room_message:new', handleNewRoomMessage)
         client.on('connection:open', handleConnectionOpen)
         client.on('connection:close', handleConnectionClose)
-        client.on('connection:error', (error) => {
+        client.on('connection:error', (error: any) => {
           console.error('useClack: SSE connection error:', error)
           setIsConnected(false)
         })
@@ -535,7 +585,7 @@ export function useClack() {
           client.off('room_message:new', handleNewRoomMessage)
           client.off('connection:open', handleConnectionOpen)
           client.off('connection:close', handleConnectionClose)
-          client.off('connection:error', (error) => {
+          client.off('connection:error', (error: any) => {
             console.error('useClack: SSE connection error:', error)
             setIsConnected(false)
           })
@@ -563,12 +613,8 @@ export function useClack() {
         return prev
       })
       
-      // Load first page of messages and filter for this conversation
-      const allMessages = await client.getMessagesPage(currentUser.id, 0, 100)
-      const messages = allMessages.filter(msg => 
-        (msg.user_a === currentUser.id && msg.user_b === otherUserId) ||
-        (msg.user_b === currentUser.id && msg.user_a === otherUserId)
-      ).slice(0, 10)
+      // Use new MCP tool for latest-first messages between users
+      const messages = await client.getMessagesBetweenUsersPage(currentUser.id, otherUserId, 0, 10)
       
       // Store messages in allMessages map
       setAllMessages(prev => {
@@ -605,12 +651,8 @@ export function useClack() {
         return
       }
       
-      // Load next page of messages and filter for this conversation
-      const allMessages = await client.getMessagesPage(currentUser.id, pagination.startIndex, 100)
-      const newMessages = allMessages.filter(msg => 
-        (msg.user_a === currentUser.id && msg.user_b === currentChatUser.id) ||
-        (msg.user_b === currentUser.id && msg.user_a === currentChatUser.id)
-      ).slice(0, 10)
+      // Use new MCP tool for latest-first messages between users
+      const newMessages = await client.getMessagesBetweenUsersPage(currentUser.id, currentChatUser.id, pagination.startIndex, 10)
       
       if (newMessages.length === 0) {
         // No more messages
@@ -974,6 +1016,7 @@ export function useClack() {
         changeRoomOwner,
         deleteRoom,
         refreshUsers,
+        applyJSONPatch,
         
         // Client
         client

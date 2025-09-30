@@ -13,6 +13,8 @@ export function ChatView() {
     currentChatUser,
     users,
     messages,
+    dataTree,
+    usernameToId,
     isLoading,
     isSendingMessage,
     isLoadingMore,
@@ -126,21 +128,25 @@ export function ChatView() {
             <p>No messages yet</p>
           </div>
         )}
-        {messages.map((msg) => (
-          <div key={msg.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-start space-x-3">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-semibold text-blue-600">{msg.sender_name}</span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(msg.created_at).toLocaleTimeString()}
-                  </span>
+        {messages.map((msg) => {
+          // Get sender name from dataTree or fallback to sender_name
+          const senderName = dataTree.users[String(msg.sender_id)]?.name || msg.sender_name || 'Unknown'
+          return (
+            <div key={msg.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="font-semibold text-blue-600">{senderName}</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(msg.created_at).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <p className="text-gray-800">{msg.content}</p>
                 </div>
-                <p className="text-gray-800">{msg.content}</p>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
       
       {/* Message Input */}

@@ -17,6 +17,8 @@ interface ClackContextType {
   roomNameToId: Record<string, number>
   isConnected: boolean
   isLoading: boolean
+  isSendingMessage: boolean
+  isLoadingMore: boolean
   sendMessage: (content: string) => Promise<void>
   startChat: (otherUserId: number) => Promise<void>
   selectChat: (otherUser: User) => Promise<void>
@@ -31,7 +33,12 @@ interface ClackContextType {
   sendRoomMessage: (content: string) => Promise<void>
   authenticate: (token: string, user: User) => Promise<void>
   loadMessages: (otherUserId: number) => Promise<void>
+  loadMoreMessages: () => Promise<void>
+  loadMoreRoomMessages: () => Promise<void>
+  changeRoomOwner: (roomId: number, newOwnerId: number) => Promise<boolean>
+  deleteRoom: (roomId: number) => Promise<boolean>
   refreshUsers: () => Promise<void>
+  applyJSONPatch: (patches: any[]) => void
   client: any
 }
 

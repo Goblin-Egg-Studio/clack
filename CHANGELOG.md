@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.25 - DataTree refactor: JSON Patch support and normalized client state
+- **Architecture**: Implement normalized dataTree structure (users, rooms, messages maps) for efficient state management
+- **JSON Patch**: Add JSON Patch applier to handle server responses and SSE updates directly into dataTree
+- **MCP Tools**: Return JSON Patch arrays from new MCP tools for direct client state updates
+- **UI**: Update ChatView/RoomChatView to read sender names from dataTree with fallbacks
+- **Client**: Add username/room name indexes and name-based MCP helpers for human-friendly operations
+- **Security**: Add authentication checks to MCP tools to prevent unauthorized data access
+- **Version**: Bump to 0.6.25 (monorepo)
+
+## 0.6.24 - MCP tool security and latest-first message support
+- **Security**: Add authentication validation to MCP tools to prevent unauthorized access to other users' data
+- **MCP Tools**: Add latest-first message retrieval tools with username/room name support
+- **Server**: Implement getMessagesBetweenUsersByIndexRangeLatest and getRoomMessagesByIndexRangeLatest
+- **Client**: Update SDK to support new MCP tools and JSON Patch responses
+- **Version**: Bump to 0.6.24 (monorepo)
+
 ## 0.6.23 - Force redeploy to fix MCP tool registration
 - **Deploy**: Force redeploy to ensure new MCP tool is properly registered
 - **Fix**: Ensure get_messages_between_users_by_index_range tool is available
