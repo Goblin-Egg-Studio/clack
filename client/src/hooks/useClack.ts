@@ -737,13 +737,35 @@ export function useClack() {
 
   // Human-friendly helpers
   const startChatByUsername = useCallback(async (username: string): Promise<void> => {
-    const id = usernameToId[username]
+    let id = usernameToId[username]
+    
+    // Fallback: if not in index, try to find in users array
+    if (!id) {
+      const user = users.find(u => u.username === username)
+      if (user) {
+        id = user.id
+        // Update the index for future lookups
+        setUsernameToId(prev => ({ ...prev, [username]: user.id }))
+      }
+    }
+    
     if (!id) throw new Error(`Unknown user: ${username}`)
     await startChat(id)
-  }, [usernameToId, startChat])
+  }, [usernameToId, users, startChat])
 
   const selectChatByUsername = useCallback(async (username: string): Promise<void> => {
-    const id = usernameToId[username]
+    let id = usernameToId[username]
+    
+    // Fallback: if not in index, try to find in users array
+    if (!id) {
+      const user = users.find(u => u.username === username)
+      if (user) {
+        id = user.id
+        // Update the index for future lookups
+        setUsernameToId(prev => ({ ...prev, [username]: user.id }))
+      }
+    }
+    
     if (!id) throw new Error(`Unknown user: ${username}`)
     const user = users.find(u => u.id === id)
     if (!user) throw new Error(`User not loaded: ${username}`)
@@ -854,7 +876,18 @@ export function useClack() {
       }, [allRoomMessages, client])
 
       const selectRoomByName = useCallback(async (roomName: string): Promise<void> => {
-        const id = roomNameToId[roomName]
+        let id = roomNameToId[roomName]
+        
+        // Fallback: if not in index, try to find in rooms array
+        if (!id) {
+          const room = rooms.find(r => r.name === roomName)
+          if (room) {
+            id = room.id
+            // Update the index for future lookups
+            setRoomNameToId(prev => ({ ...prev, [roomName]: room.id }))
+          }
+        }
+        
         if (!id) throw new Error(`Unknown room: ${roomName}`)
         const room = rooms.find(r => r.id === id)
         if (!room) throw new Error(`Room not loaded: ${roomName}`)
