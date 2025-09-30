@@ -312,10 +312,11 @@ export class ClackClient extends EventEmitter {
       headers['X-Password'] = this.password
     }
 
-    console.log('MCP Request →', {
+    console.log('📤 MCP Request →', {
       method,
       params,
-      headers: Object.keys(headers)
+      headers: Object.keys(headers),
+      timestamp: new Date().toISOString()
     })
 
     const response = await fetch(`${this.baseUrl}/api/mcp`, {
@@ -337,10 +338,11 @@ export class ClackClient extends EventEmitter {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
-    console.log('MCP Request success ←', {
+    console.log('✅ MCP Request success ←', {
       method,
       status: response.status,
-      statusText: response.statusText
+      statusText: response.statusText,
+      timestamp: new Date().toISOString()
     })
 
     let jsonResponse
@@ -359,8 +361,21 @@ export class ClackClient extends EventEmitter {
     }
 
     if (jsonResponse.error) {
+      console.error('❌ MCP Response error:', {
+        method,
+        error: jsonResponse.error,
+        errorMessage: jsonResponse.error.message,
+        errorCode: jsonResponse.error.code
+      })
       throw new Error(jsonResponse.error.message || 'Unknown MCP error')
     }
+
+    console.log('📦 MCP Response result structure:', {
+      method,
+      hasResult: !!jsonResponse.result,
+      resultKeys: jsonResponse.result ? Object.keys(jsonResponse.result) : 'null',
+      resultType: typeof jsonResponse.result
+    })
 
     return jsonResponse.result
   }
@@ -594,33 +609,71 @@ export class ClackClient extends EventEmitter {
           console.log('- Batch size:', batchSize)
           console.log('- Using get_messages_by_index_range with otherUserId filter')
           
-          // Use the existing tool with otherUserId parameter for server-side filtering
-          const result = await this.makeMCPRequest('get_messages_by_index_range', {
-            userId: authenticatedUserId,
-            otherUserId: otherUserId,
-            startIndex,
-            endIndex: startIndex + batchSize
-          })
-          
-          console.log('📡 MCP Request result:', result)
-          
-          // Unwrap MCP response format
-          const unwrappedResult = result.content && result.content[0] && result.content[0].text 
-            ? JSON.parse(result.content[0].text) 
-            : result
-          
-          console.log('📦 Unwrapped result:', unwrappedResult)
-          
-          if (!unwrappedResult.success || !unwrappedResult.messages) {
-            console.log('❌ No messages returned')
-            return []
+          try {
+            // Use the existing tool with otherUserId parameter for server-side filtering
+            console.log('📤 Making MCP request to get_messages_by_index_range...')
+            const result = await this.makeMCPRequest('get_messages_by_index_range', {
+              userId: authenticatedUserId,
+              otherUserId: otherUserId,
+              startIndex,
+              endIndex: startIndex + batchSize
+            })
+            
+            console.log('📡 MCP Request completed successfully')
+            console.log('📡 Raw MCP result structure:', {
+              hasContent: !!result.content,
+              contentLength: result.content?.length,
+              hasText: !!(result.content?.[0]?.text),
+              resultKeys: Object.keys(result)
+            })
+            
+            // Unwrap MCP response format
+            const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+              ? JSON.parse(result.content[0].text) 
+              : result
+            
+            console.log('📦 Unwrapped result structure:', {
+              hasSuccess: 'success' in unwrappedResult,
+              success: unwrappedResult.success,
+              hasMessages: 'messages' in unwrappedResult,
+              messagesLength: unwrappedResult.messages?.length,
+              resultKeys: Object.keys(unwrappedResult)
+            })
+            
+            if (!unwrappedResult.success) {
+              console.log('❌ Server returned success: false')
+              console.log('❌ Error details:', unwrappedResult.error || 'No error details')
+              return []
+            }
+            
+            if (!unwrappedResult.messages) {
+              console.log('❌ No messages property in response')
+              console.log('❌ Available properties:', Object.keys(unwrappedResult))
+              return []
+            }
+            
+            console.log('✅ Server returned', unwrappedResult.messages.length, 'messages')
+            if (unwrappedResult.messages.length > 0) {
+              console.log('📝 Sample message structure:', {
+                id: unwrappedResult.messages[0].id,
+                sender_id: unwrappedResult.messages[0].sender_id,
+                content: unwrappedResult.messages[0].content?.substring(0, 50) + '...',
+                created_at: unwrappedResult.messages[0].created_at
+              })
+            }
+            
+            // No client-side filtering needed - server returns exactly what we want
+            return unwrappedResult.messages
+            
+          } catch (error) {
+            console.error('💥 Error in getMessagesBetweenUsersPage:', error)
+            console.error('💥 Error details:', {
+              name: error.name,
+              message: error.message,
+              stack: error.stack?.split('\n').slice(0, 3)
+            })
+            throw error
           }
-          
-          console.log('✅ Server returned', unwrappedResult.messages.length, 'messages')
-          console.log('📝 Sample message:', unwrappedResult.messages[0])
-          
-          // No client-side filtering needed - server returns exactly what we want
-          return unwrappedResult.messages
         }
 
   // Human-friendly MCP helpers using usernames and room names
