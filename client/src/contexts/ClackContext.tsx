@@ -12,6 +12,9 @@ interface ClackContextType {
   messages: Message[]
   allMessages: Map<string, Message[]>
   allRoomMessages: Map<number, Message[]>
+  dataTree: any
+  usernameToId: Record<string, number>
+  roomNameToId: Record<string, number>
   isConnected: boolean
   isLoading: boolean
   sendMessage: (content: string) => Promise<void>

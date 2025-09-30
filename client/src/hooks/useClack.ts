@@ -3,6 +3,35 @@ import { ClackClient, Message, User, Room, VersionInfo } from '../sdk/clackClien
 import { soundService } from '../services/soundService'
 import { versionService } from '../services/versionService'
 
+// Lightweight home-grown normalized data tree to mirror JSON patch shape
+interface DataTreeUserMessage {
+  timestamp: string
+  message: string
+  sender: number
+}
+
+interface DataTreeUser {
+  name: string
+  messages: Record<string, DataTreeUserMessage>
+}
+
+interface DataTreeRoomMessage {
+  timestamp: string
+  message: string
+  sender: number
+}
+
+interface DataTreeRoom {
+  name: string
+  ownerId: number
+  messages: Record<string, DataTreeRoomMessage>
+}
+
+interface DataTree {
+  users: Record<string, DataTreeUser>
+  rooms: Record<string, DataTreeRoom>
+}
+
 export function useClack() {
   const [client] = useState(() => new ClackClient({
     baseUrl: '',
@@ -22,6 +51,11 @@ export function useClack() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSendingMessage, setIsSendingMessage] = useState(false)
   
+  // Home-grown normalized store + name indexes
+  const [dataTree, setDataTree] = useState<DataTree>({ users: {}, rooms: {} })
+  const [usernameToId, setUsernameToId] = useState<Record<string, number>>({})
+  const [roomNameToId, setRoomNameToId] = useState<Record<string, number>>({})
+
   // Pagination state
   const [messagePagination, setMessagePagination] = useState<Map<string, { startIndex: number, hasMore: boolean }>>(new Map()) // Track pagination for each chat/room
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -48,6 +82,29 @@ export function useClack() {
   // Set up event listeners
   useEffect(() => {
     const handleNewMessage = (message: Message) => {
+      // Mirror into dataTree for each participant
+      setDataTree(prev => {
+        const next: DataTree = { ...prev, users: { ...prev.users } }
+        const participants: number[] = [message.user_a, message.user_b]
+        const msgIdKey = String(message.id)
+        const payload: DataTreeUserMessage = {
+          timestamp: message.created_at,
+          message: message.content,
+          sender: message.sender_id
+        }
+        participants.forEach(uid => {
+          const key = String(uid)
+          const existingUser = next.users[key]
+          if (existingUser) {
+            next.users[key] = {
+              ...existingUser,
+              messages: { ...existingUser.messages, [msgIdKey]: payload }
+            }
+          }
+        })
+        return next
+      })
+
       // Update the allMessages map
       setAllMessages(prev => {
         const newMap = new Map(prev)
@@ -100,10 +157,38 @@ export function useClack() {
         }
         return prev
       })
+
+      // Insert into dataTree and username index
+      setDataTree(prev => {
+        const key = String(user.id)
+        if (prev.users[key]) return prev
+        return {
+          ...prev,
+          users: {
+            ...prev.users,
+            [key]: { name: user.username, messages: {} }
+          }
+        }
+      })
+      setUsernameToId(prev => ({ ...prev, [user.username]: user.id }))
     }
 
     const handleInitialUsers = (users: User[]) => {
       setUsers(users)
+      // Seed dataTree users and username index
+      setDataTree(prev => {
+        const nextUsers: Record<string, DataTreeUser> = { ...prev.users }
+        const idx: Record<string, number> = { ...usernameToId }
+        users.forEach(u => {
+          const key = String(u.id)
+          if (!nextUsers[key]) {
+            nextUsers[key] = { name: u.username, messages: {} }
+          }
+          idx[u.username] = u.id
+        })
+        setUsernameToId(idx)
+        return { ...prev, users: nextUsers }
+      })
     }
 
         const handleInitialMessages = (messages: Message[]) => {
@@ -116,6 +201,30 @@ export function useClack() {
               newMap.set(pairKey, [...existingMessages, message])
             })
             return newMap
+          })
+
+          // Mirror into dataTree for both participants
+          setDataTree(prev => {
+            const next: DataTree = { ...prev, users: { ...prev.users } }
+            messages.forEach(m => {
+              const msgIdKey = String(m.id)
+              const payload: DataTreeUserMessage = {
+                timestamp: m.created_at,
+                message: m.content,
+                sender: m.sender_id
+              }
+              ;[m.user_a, m.user_b].forEach(uid => {
+                const key = String(uid)
+                const existingUser = next.users[key]
+                if (existingUser) {
+                  next.users[key] = {
+                    ...existingUser,
+                    messages: { ...existingUser.messages, [msgIdKey]: payload }
+                  }
+                }
+              })
+            })
+            return next
           })
         }
 
@@ -132,6 +241,20 @@ export function useClack() {
             }
             return filtered
           })
+
+          // Insert into dataTree rooms and room name index
+          setDataTree(prev => {
+            const key = String(room.id)
+            if (prev.rooms[key]) return prev
+            return {
+              ...prev,
+              rooms: {
+                ...prev.rooms,
+                [key]: { name: room.name, ownerId: room.created_by, messages: {} }
+              }
+            }
+          })
+          setRoomNameToId(prev => ({ ...prev, [room.name]: room.id }))
           
           // If the current user created this room, add it to their userRooms
           if (currentUserRef.current && room.created_by === currentUserRef.current.id) {
@@ -221,7 +344,22 @@ export function useClack() {
 
         const handleInitialRooms = (rooms: Room[]) => {
           if (Array.isArray(rooms)) {
-            setRooms(rooms.filter(room => room && room.id))
+            const clean = rooms.filter(room => room && room.id)
+            setRooms(clean)
+            // Seed dataTree rooms and index
+            setDataTree(prev => {
+              const nextRooms: Record<string, DataTreeRoom> = { ...prev.rooms }
+              const idx: Record<string, number> = { ...roomNameToId }
+              clean.forEach(r => {
+                const key = String(r.id)
+                if (!nextRooms[key]) {
+                  nextRooms[key] = { name: r.name, ownerId: r.created_by, messages: {} }
+                }
+                idx[r.name] = r.id
+              })
+              setRoomNameToId(idx)
+              return { ...prev, rooms: nextRooms }
+            })
           }
         }
 
@@ -236,6 +374,28 @@ export function useClack() {
             const newMap = new Map(prev)
             newMap.set(data.roomId, data.messages)
             return newMap
+          })
+
+          // Mirror into dataTree
+          setDataTree(prev => {
+            const key = String(data.roomId)
+            const room = prev.rooms[key]
+            if (!room) return prev
+            const nextMessages: Record<string, DataTreeRoomMessage> = { ...room.messages }
+            data.messages.forEach(m => {
+              nextMessages[String(m.id)] = {
+                timestamp: m.created_at,
+                message: m.content,
+                sender: m.sender_id
+              }
+            })
+            return {
+              ...prev,
+              rooms: {
+                ...prev.rooms,
+                [key]: { ...room, messages: nextMessages }
+              }
+            }
           })
         }
 
@@ -256,6 +416,30 @@ export function useClack() {
             }
             
             return newMap
+          })
+
+          // Mirror into dataTree
+          setDataTree(prev => {
+            const key = String(message.room_id!)
+            const room = prev.rooms[key]
+            if (!room) return prev
+            return {
+              ...prev,
+              rooms: {
+                ...prev.rooms,
+                [key]: {
+                  ...room,
+                  messages: {
+                    ...room.messages,
+                    [String(message.id)]: {
+                      timestamp: message.created_at,
+                      message: message.content,
+                      sender: message.sender_id
+                    }
+                  }
+                }
+              }
+            }
           })
           
           // Only add message to current view if it's for the current room
@@ -740,6 +924,9 @@ export function useClack() {
         messages,
         allMessages,
         allRoomMessages,
+        dataTree,
+        usernameToId,
+        roomNameToId,
         isConnected,
         isLoading,
         isSendingMessage,
