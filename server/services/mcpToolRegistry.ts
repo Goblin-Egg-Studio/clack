@@ -48,6 +48,7 @@ export function createChatTools(db: Database): MCPTool[] {
     },
     { name: 'send_user_message_by_id', description: 'Send DM to user by ID', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, content: { type: 'string' } }, required: ['otherUserId', 'content'] } },
     { name: 'send_user_message_by_username', description: 'Send DM to user by username', inputSchema: { type: 'object', properties: { otherUsername: { type: 'string' }, content: { type: 'string' } }, required: ['otherUsername', 'content'] } },
+    { name: 'send_message', description: 'Send message to user (legacy)', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, content: { type: 'string' } }, required: ['otherUserId', 'content'] } },
     {
       name: 'create_room',
       description: 'Create a new chat room',
@@ -256,6 +257,17 @@ export async function executeToolByName(
           const user = await (provider as any).chatService.getUserByUsername(otherUsername);
           if (!user) throw new Error('User not found');
           const msg: Message = await provider.sendMessage(senderId, user.id, content);
+          const patches = addDmMessagePatches(msg)
+          return { success: true, patches };
+        }
+
+        case 'send_message': {
+          const { otherUserId, content } = toolArgs;
+          const senderId = headers.userId;
+          if (!senderId || !otherUserId || !content) {
+            throw new Error('Missing required field: senderId from authentication or otherUserId/content');
+          }
+          const msg: Message = await provider.sendMessage(senderId, otherUserId, content);
           const patches = addDmMessagePatches(msg)
           return { success: true, patches };
         }
