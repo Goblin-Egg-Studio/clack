@@ -750,6 +750,31 @@ export function useClack() {
     await selectChat(user)
   }, [usernameToId, users, selectChat])
 
+  // Human-friendly MCP helpers using usernames and room names
+  const sendMessageByUsername = useCallback(async (username: string, content: string): Promise<void> => {
+    await client.sendMessageByUsername(username, content)
+  }, [client])
+
+  const getMessagesByUsername = useCallback(async (username: string, startIndex: number, endIndex: number): Promise<Message[]> => {
+    return await client.getMessagesByUsername(username, startIndex, endIndex)
+  }, [client])
+
+  const joinRoomByName = useCallback(async (roomName: string): Promise<boolean> => {
+    return await client.joinRoomByName(roomName)
+  }, [client])
+
+  const leaveRoomByName = useCallback(async (roomName: string): Promise<boolean> => {
+    return await client.leaveRoomByName(roomName)
+  }, [client])
+
+  const sendRoomMessageByName = useCallback(async (roomName: string, content: string): Promise<void> => {
+    await client.sendRoomMessageByName(roomName, content)
+  }, [client])
+
+  const getRoomMessagesByName = useCallback(async (roomName: string, startIndex: number, endIndex: number): Promise<Message[]> => {
+    return await client.getRoomMessagesByName(roomName, startIndex, endIndex)
+  }, [client])
+
       const createRoom = useCallback(async (name: string, description: string): Promise<Room> => {
         if (!currentUser) throw new Error('User not authenticated')
         
@@ -1017,6 +1042,14 @@ export function useClack() {
         deleteRoom,
         refreshUsers,
         applyJSONPatch,
+        
+        // Human-friendly MCP helpers
+        sendMessageByUsername,
+        getMessagesByUsername,
+        joinRoomByName,
+        leaveRoomByName,
+        sendRoomMessageByName,
+        getRoomMessagesByName,
         
         // Client
         client

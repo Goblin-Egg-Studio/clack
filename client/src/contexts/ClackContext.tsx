@@ -39,6 +39,15 @@ interface ClackContextType {
   deleteRoom: (roomId: number) => Promise<boolean>
   refreshUsers: () => Promise<void>
   applyJSONPatch: (patches: any[]) => void
+  
+  // Human-friendly MCP helpers
+  sendMessageByUsername: (username: string, content: string) => Promise<void>
+  getMessagesByUsername: (username: string, startIndex: number, endIndex: number) => Promise<Message[]>
+  joinRoomByName: (roomName: string) => Promise<boolean>
+  leaveRoomByName: (roomName: string) => Promise<boolean>
+  sendRoomMessageByName: (roomName: string, content: string) => Promise<void>
+  getRoomMessagesByName: (roomName: string, startIndex: number, endIndex: number) => Promise<Message[]>
+  
   client: any
 }
 

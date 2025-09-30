@@ -368,12 +368,12 @@ export class ClackClient extends EventEmitter {
   // Chat service methods
   async sendMessage(otherUserId: number, content: string): Promise<Message> {
     const result = await this.makeMCPRequest('send_message', { otherUserId, content })
-    return result.content[0].text ? JSON.parse(result.content[0].text).message : null
+    return result.content[0].text ? JSON.parse(result.content[0].text).message : {} as Message
   }
 
   async createRoom(name: string, description: string): Promise<Room> {
     const result = await this.makeMCPRequest('create_room', { name, description })
-    return result.content[0].text ? JSON.parse(result.content[0].text).room : null
+    return result.content[0].text ? JSON.parse(result.content[0].text).room : {} as Room
   }
 
   async joinRoom(roomId: number): Promise<boolean> {
@@ -388,7 +388,7 @@ export class ClackClient extends EventEmitter {
 
   async sendRoomMessage(roomId: number, content: string): Promise<Message> {
     const result = await this.makeMCPRequest('send_room_message', { roomId, content })
-    return result.content[0].text ? JSON.parse(result.content[0].text).message : null
+    return result.content[0].text ? JSON.parse(result.content[0].text).message : {} as Message
   }
 
   // Utility methods
@@ -569,6 +569,97 @@ export class ClackClient extends EventEmitter {
     })
     
     // Unwrap MCP response format
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    if (!unwrappedResult.success || !unwrappedResult.messages) {
+      return []
+    }
+    
+    return unwrappedResult.messages
+  }
+
+  // Human-friendly MCP helpers using usernames and room names
+  async sendMessageByUsername(username: string, content: string): Promise<void> {
+    const result = await this.makeMCPRequest('send_user_message_by_username', {
+      otherUserName: username,
+      content
+    })
+    
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    if (!unwrappedResult.success) {
+      throw new Error(unwrappedResult.error || 'Failed to send message')
+    }
+  }
+
+  async getMessagesByUsername(username: string, startIndex: number, endIndex: number): Promise<Message[]> {
+    const result = await this.makeMCPRequest('get_user_messages_latest_by_username_by_index_range', {
+      otherUserName: username,
+      startIndex,
+      endIndex
+    })
+    
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    if (!unwrappedResult.success || !unwrappedResult.messages) {
+      return []
+    }
+    
+    return unwrappedResult.messages
+  }
+
+  async joinRoomByName(roomName: string): Promise<boolean> {
+    const result = await this.makeMCPRequest('join_room_by_name', {
+      roomName
+    })
+    
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    return unwrappedResult.success || false
+  }
+
+  async leaveRoomByName(roomName: string): Promise<boolean> {
+    const result = await this.makeMCPRequest('leave_room_by_name', {
+      roomName
+    })
+    
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    return unwrappedResult.success || false
+  }
+
+  async sendRoomMessageByName(roomName: string, content: string): Promise<void> {
+    const result = await this.makeMCPRequest('send_room_message_by_name', {
+      roomName,
+      content
+    })
+    
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    if (!unwrappedResult.success) {
+      throw new Error(unwrappedResult.error || 'Failed to send room message')
+    }
+  }
+
+  async getRoomMessagesByName(roomName: string, startIndex: number, endIndex: number): Promise<Message[]> {
+    const result = await this.makeMCPRequest('get_room_messages_latest_by_name_by_index_range', {
+      roomName,
+      startIndex,
+      endIndex
+    })
+    
     const unwrappedResult = result.content && result.content[0] && result.content[0].text 
       ? JSON.parse(result.content[0].text) 
       : result
