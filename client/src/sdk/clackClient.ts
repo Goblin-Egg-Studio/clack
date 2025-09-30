@@ -585,10 +585,11 @@ export class ClackClient extends EventEmitter {
   }
 
   async getMessagesBetweenUsersPage(authenticatedUserId: number, otherUserId: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
-    // Use the proper server-side tool
-    const result = await this.makeMCPRequest('get_messages_with_user', {
+    // Use the existing tool with otherUserId parameter for server-side filtering
+    const result = await this.makeMCPRequest('get_messages_by_index_range', {
       startIndex,
       endIndex: startIndex + batchSize,
+      userId: authenticatedUserId,
       otherUserId
     })
     

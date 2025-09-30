@@ -111,7 +111,8 @@ export function createChatTools(db: Database): MCPTool[] {
         properties: {
           startIndex: { type: 'number', description: 'Start index (0-based)' },
           endIndex: { type: 'number', description: 'End index (exclusive)' },
-          userId: { type: 'number', description: 'User ID to filter messages for' }
+          userId: { type: 'number', description: 'User ID to filter messages for' },
+          otherUserId: { type: 'number', description: 'Optional: filter to specific conversation' }
         },
         required: ['startIndex', 'endIndex', 'userId']
       }
@@ -330,19 +331,24 @@ export async function executeToolByName(
         
 
         case 'get_messages_by_index_range': {
-          const { startIndex, endIndex, userId } = toolArgs;
+          const { startIndex, endIndex, userId, otherUserId } = toolArgs;
           const authenticatedUserId = headers.userId;
-          
+
           if (startIndex === undefined || endIndex === undefined || !userId) {
             throw new Error('startIndex, endIndex and userId are required');
           }
-          
+
           // Security: Only allow users to access their own messages
           if (!authenticatedUserId || authenticatedUserId !== userId) {
             throw new Error('Unauthorized: You can only access your own messages');
           }
           
-          return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
+          // If otherUserId is provided, filter to specific conversation
+          if (otherUserId) {
+            return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userId, otherUserId);
+          } else {
+            return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
+          }
         }
 
         case 'get_messages_with_user': {
