@@ -117,6 +117,19 @@ export function createChatTools(db: Database): MCPTool[] {
       }
     },
     {
+      name: 'get_messages_with_user_by_index_range',
+      description: 'Get messages between authenticated user and specific other user',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          startIndex: { type: 'number', description: 'Start index (0-based)' },
+          endIndex: { type: 'number', description: 'End index (exclusive)' },
+          otherUserId: { type: 'number', description: 'Other user ID to get messages with' }
+        },
+        required: ['startIndex', 'endIndex', 'otherUserId']
+      }
+    },
+    {
       name: 'get_user_rooms',
       description: 'Get rooms that a user is a member of',
       inputSchema: {
@@ -330,6 +343,22 @@ export async function executeToolByName(
           }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
+        }
+
+        case 'get_messages_with_user_by_index_range': {
+          const { startIndex, endIndex, otherUserId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
+          if (startIndex === undefined || endIndex === undefined || !otherUserId) {
+            throw new Error('startIndex, endIndex and otherUserId are required');
+          }
+          
+          // Security: Only allow users to access their own messages
+          if (!authenticatedUserId) {
+            throw new Error('Unauthorized: You must be authenticated');
+          }
+          
+          return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, authenticatedUserId, otherUserId);
         }
 
 
