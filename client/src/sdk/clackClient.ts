@@ -607,6 +607,13 @@ export class ClackClient extends EventEmitter {
       (msg.user_b === authenticatedUserId && msg.user_a === otherUserId)
     )
     
+    console.log('getMessagesBetweenUsersPage Debug:')
+    console.log('- Authenticated user:', authenticatedUserId)
+    console.log('- Other user:', otherUserId)
+    console.log('- Total messages from server:', unwrappedResult.messages.length)
+    console.log('- Filtered messages:', filteredMessages.length)
+    console.log('- Sample message:', unwrappedResult.messages[0])
+    
     return filteredMessages
   }
 
