@@ -552,6 +552,26 @@ export class ClackClient extends EventEmitter {
     return unwrappedResult.messages
   }
 
+  async getMessagesBetweenUsersPage(userA: number, userB: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
+    const result = await this.makeMCPRequest('get_messages_between_users_by_index_range', {
+      startIndex,
+      endIndex: startIndex + batchSize,
+      userA,
+      userB
+    })
+    
+    // Unwrap MCP response format
+    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+      ? JSON.parse(result.content[0].text) 
+      : result
+    
+    if (!unwrappedResult.success || !unwrappedResult.messages) {
+      return []
+    }
+    
+    return unwrappedResult.messages
+  }
+
   async getRoomMessagesPage(roomId: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
     const result = await this.makeMCPRequest('get_room_messages_by_index_range', {
       startIndex,

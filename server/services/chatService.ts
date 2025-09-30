@@ -378,6 +378,22 @@ export class ChatService {
     return messages;
   }
 
+  async getMessagesBetweenUsersByIndexRange(startIndex: number, endIndex: number, userA: number, userB: number): Promise<Message[]> {
+    // Ensure consistent ordering (user_a < user_b)
+    const [userAId, userBId] = userA < userB ? [userA, userB] : [userB, userA];
+    
+    const messages = this.db.query(`
+      SELECT m.id, m.user_a, m.user_b, m.sender_id, m.content, m.created_at, u.username as sender_name
+      FROM messages m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.user_a = ? AND m.user_b = ?
+      ORDER BY m.created_at ASC
+      LIMIT ? OFFSET ?
+    `).all(userAId, userBId, endIndex - startIndex, startIndex);
+    
+    return messages;
+  }
+
   async getRoomMessagesByIndexRange(startIndex: number, endIndex: number, roomId: number): Promise<Message[]> {
     const messages = this.db.query(`
       SELECT m.id, m.room_id, m.sender_id, m.content, m.created_at, u.username as sender_name

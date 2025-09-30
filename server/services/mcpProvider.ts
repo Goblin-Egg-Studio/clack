@@ -15,6 +15,7 @@ export interface MCPProvider {
   getUsersByIndexRange(startIndex: number, endIndex: number): Promise<any>;
   getRoomsByIndexRange(startIndex: number, endIndex: number): Promise<any>;
   getMessagesByIndexRange(startIndex: number, endIndex: number, userId: number): Promise<any>;
+  getMessagesBetweenUsersByIndexRange(startIndex: number, endIndex: number, userA: number, userB: number): Promise<any>;
   getRoomMessagesByIndexRange(startIndex: number, endIndex: number, roomId: number): Promise<any>;
   getUserRooms(userId: number): Promise<any>;
   changeRoomOwner(roomId: number, newOwnerId: number, currentOwnerId: number): Promise<any>;
@@ -120,6 +121,14 @@ export class ChatMCPProvider implements MCPProvider {
 
   async getMessagesByIndexRange(startIndex: number, endIndex: number, userId: number): Promise<any> {
     const messages = await this.chatService.getMessagesByIndexRange(startIndex, endIndex, userId);
+    return {
+      success: true,
+      messages
+    };
+  }
+
+  async getMessagesBetweenUsersByIndexRange(startIndex: number, endIndex: number, userA: number, userB: number): Promise<any> {
+    const messages = await this.chatService.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userA, userB);
     return {
       success: true,
       messages

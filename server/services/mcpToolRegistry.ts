@@ -168,6 +168,20 @@ export function createChatTools(db: Database): MCPTool[] {
       }
     },
     {
+      name: 'get_messages_between_users_by_index_range',
+      description: 'Get messages between two specific users by index range (for pagination)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          startIndex: { type: 'number', description: 'Start index (0-based)' },
+          endIndex: { type: 'number', description: 'End index (exclusive)' },
+          userA: { type: 'number', description: 'First user ID' },
+          userB: { type: 'number', description: 'Second user ID' }
+        },
+        required: ['startIndex', 'endIndex', 'userA', 'userB']
+      }
+    },
+    {
       name: 'get_room_messages_by_index_range',
       description: 'Get room messages by index range (for pagination)',
       inputSchema: {
@@ -357,6 +371,15 @@ export async function executeToolByName(
           }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
+        }
+
+        case 'get_messages_between_users_by_index_range': {
+          const { startIndex, endIndex, userA, userB } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined || !userA || !userB) {
+            throw new Error('startIndex, endIndex, userA and userB are required');
+          }
+          
+          return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userA, userB);
         }
 
         case 'get_room_messages_by_index_range': {
