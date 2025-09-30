@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.21 - Update sidebar labels for better UX
+- **UI**: Change "Direct Messages" to "Users" in sidebar
+- **UI**: Change "Chat Rooms" to "Rooms" in sidebar
+- **Version**: Bump to 0.6.21 (monorepo)
+
 ## 0.6.20 - Align systemd + setup to /opt/clack and clack user
 - **Ops**: Ensure systemd unit runs with WorkingDirectory=/opt/clack, User=clack, ExecStart uses `bun run`
 - **Docs**: README clarifies canonical deployment path (/opt/clack) and log commands

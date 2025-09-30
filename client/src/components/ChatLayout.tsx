@@ -41,14 +41,14 @@ export function ChatLayout() {
           <p className="text-sm text-gray-600">Welcome, {currentUser?.username}!</p>
         </div>
         
-        {/* Direct Messages Section */}
+        {/* Users Section */}
         <div className="border-b border-gray-200">
           <div className="group">
         <div 
           className="flex items-center cursor-pointer px-4 py-3 bg-gray-50 border-b border-gray-200 hover:bg-gray-100 transition-colors"
           onClick={() => setIsDirectMessagesOpen(!isDirectMessagesOpen)}
         >
-          <span className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex-1">👥 Direct Messages</span>
+          <span className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex-1">👥 Users</span>
           <span className="text-gray-400 w-4 text-center">
             {isDirectMessagesOpen ? '-' : '+'}
           </span>
@@ -92,14 +92,14 @@ export function ChatLayout() {
           </div>
         </div>
 
-        {/* Chat Rooms Section */}
+        {/* Rooms Section */}
         <div className="flex-1 flex flex-col">
           <div className="group flex-1 flex flex-col">
         <div 
           className="flex items-center cursor-pointer px-4 py-3 bg-gray-50 border-b border-gray-200 hover:bg-gray-100 transition-colors"
           onClick={() => setIsChatRoomsOpen(!isChatRoomsOpen)}
         >
-          <span className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex-1">🏠 Chat Rooms</span>
+          <span className="font-semibold text-gray-700 text-sm uppercase tracking-wide flex-1">🏠 Rooms</span>
           <span className="text-gray-400 w-4 text-center">
             {isChatRoomsOpen ? '-' : '+'}
           </span>
