@@ -1,6 +1,7 @@
 import { Database } from 'bun:sqlite';
 import { MCPProvider } from './mcpProvider.js';
 import { ProviderRegistry } from './providerRegistry.js';
+import type { Message, User, Room } from './chatService.js'
 
 export interface MCPTool {
   name: string;
@@ -211,6 +212,38 @@ export async function executeToolByName(
     throw new Error('Chat provider not found');
   }
 
+      // Helpers to build JSON Patch arrays in the client's dataTree shape
+      const addUserPatch = (user: User) => ({
+        op: 'add',
+        path: `/users/${user.id}`,
+        value: { name: user.username, messages: {} }
+      })
+
+      const addRoomPatch = (room: Room) => ({
+        op: 'add',
+        path: `/rooms/${room.id}`,
+        value: { name: room.name, ownerId: room.created_by, messages: {} }
+      })
+
+      const addDmMessagePatches = (msg: Message) => [
+        {
+          op: 'add',
+          path: `/users/${msg.user_a}/messages/${msg.id}`,
+          value: { timestamp: msg.created_at, message: msg.content, sender: msg.sender_id }
+        },
+        {
+          op: 'add',
+          path: `/users/${msg.user_b}/messages/${msg.id}`,
+          value: { timestamp: msg.created_at, message: msg.content, sender: msg.sender_id }
+        }
+      ]
+
+      const addRoomMessagePatch = (msg: Message) => ({
+        op: 'add',
+        path: `/rooms/${msg.room_id}/messages/${msg.id}`,
+        value: { timestamp: msg.created_at, message: msg.content, sender: msg.sender_id }
+      })
+
       switch (toolName) {
         // Renamed index tools
         case 'get_users_by_index':
@@ -219,7 +252,10 @@ export async function executeToolByName(
           if (startIndex === undefined || endIndex === undefined) {
             throw new Error('startIndex and endIndex are required');
           }
-          return await provider.getUsersByIndexRange(startIndex, endIndex);
+          const result = await provider.getUsersByIndexRange(startIndex, endIndex);
+          const users: User[] = result.users || result;
+          const patches = users.map(addUserPatch)
+          return { success: true, patches };
         }
 
         case 'get_rooms_by_index':
@@ -228,7 +264,10 @@ export async function executeToolByName(
           if (startIndex === undefined || endIndex === undefined) {
             throw new Error('startIndex and endIndex are required');
           }
-          return await provider.getRoomsByIndexRange(startIndex, endIndex);
+          const result = await provider.getRoomsByIndexRange(startIndex, endIndex);
+          const rooms: Room[] = result.rooms || result;
+          const patches = rooms.map(addRoomPatch)
+          return { success: true, patches };
         }
         case 'send_user_message_by_id': {
           const { otherUserId, content } = toolArgs;
@@ -241,7 +280,9 @@ export async function executeToolByName(
             throw new Error('Missing required field: senderId from authentication or otherUserId/content');
           }
           
-          return await provider.sendMessage(senderId, otherUserId, content);
+          const msg: Message = await provider.sendMessage(senderId, otherUserId, content);
+          const patches = addDmMessagePatches(msg)
+          return { success: true, patches };
         }
 
         case 'send_user_message_by_username': {
@@ -252,7 +293,9 @@ export async function executeToolByName(
           }
           const user = await (provider as any).chatService.getUserByUsername(otherUsername);
           if (!user) throw new Error('User not found');
-          return await provider.sendMessage(senderId, user.id, content);
+          const msg: Message = await provider.sendMessage(senderId, user.id, content);
+          const patches = addDmMessagePatches(msg)
+          return { success: true, patches };
         }
 
         case 'create_room': {
@@ -371,7 +414,9 @@ export async function executeToolByName(
             throw new Error('Unauthorized: You can only access messages in conversations you participate in');
           }
           
-          return await (provider as any).chatService.getMessagesBetweenUsersByIndexRangeLatest(startIndex, endIndex, authenticatedUserId, otherUserId);
+          const msgs: Message[] = await (provider as any).chatService.getMessagesBetweenUsersByIndexRangeLatest(startIndex, endIndex, authenticatedUserId, otherUserId);
+          const patches = msgs.flatMap(addDmMessagePatches)
+          return { success: true, patches };
         }
 
         case 'get_user_messages_latest_by_username_by_index_range': {
@@ -385,7 +430,9 @@ export async function executeToolByName(
           }
           const user = await (provider as any).chatService.getUserByUsername(otherUsername);
           if (!user) throw new Error('User not found');
-          return await (provider as any).chatService.getMessagesBetweenUsersByIndexRangeLatest(startIndex, endIndex, authenticatedUserId, user.id);
+          const msgs: Message[] = await (provider as any).chatService.getMessagesBetweenUsersByIndexRangeLatest(startIndex, endIndex, authenticatedUserId, user.id);
+          const patches = msgs.flatMap(addDmMessagePatches)
+          return { success: true, patches };
         }
 
         case 'get_room_messages_latest_by_id_by_index_range': {
@@ -393,7 +440,9 @@ export async function executeToolByName(
           if (startIndex === undefined || endIndex === undefined || !roomId) {
             throw new Error('startIndex, endIndex and roomId are required');
           }
-          return await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, roomId);
+          const msgs: Message[] = await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, roomId);
+          const patches = msgs.map(addRoomMessagePatch)
+          return { success: true, patches };
         }
 
         case 'get_room_messages_latest_by_name_by_index_range': {
@@ -403,7 +452,9 @@ export async function executeToolByName(
           }
           const room = await (provider as any).chatService.getRoomByName(roomName);
           if (!room) throw new Error('Room not found');
-          return await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, room.id);
+          const msgs: Message[] = await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, room.id);
+          const patches = msgs.map(addRoomMessagePatch)
+          return { success: true, patches };
         }
 
         case 'get_user_rooms': {

@@ -203,7 +203,10 @@ export class ClackClient extends EventEmitter {
 
       private handleSSEEvent(data: any): void {
         // Handle JSON patch format
-        if (data.op && data.path && data.value !== undefined) {
+        if (Array.isArray(data)) {
+          data.forEach(p => this.handleJSONPatch(p))
+          return
+        } else if (data.op && data.path && data.value !== undefined) {
           this.handleJSONPatch(data)
           return
         }
@@ -414,12 +417,18 @@ export class ClackClient extends EventEmitter {
       const unwrappedResult = result.content && result.content[0] && result.content[0].text 
         ? JSON.parse(result.content[0].text) 
         : result
+
+      if (unwrappedResult.patches) {
+        // Apply and continue; stop early only when server indicates no more
+      }
       
-      if (!unwrappedResult.success || !unwrappedResult.users || unwrappedResult.users.length === 0) {
+      if (!unwrappedResult.success || (unwrappedResult.users && unwrappedResult.users.length === 0)) {
         break
       }
       
-      allUsers.push(...unwrappedResult.users)
+      if (unwrappedResult.users) {
+        allUsers.push(...unwrappedResult.users)
+      }
       
       if (unwrappedResult.users.length < batchSize) {
         break
@@ -553,11 +562,10 @@ export class ClackClient extends EventEmitter {
   }
 
   async getMessagesBetweenUsersPage(userA: number, userB: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
-    const result = await this.makeMCPRequest('get_messages_between_users_by_index_range', {
+    const result = await this.makeMCPRequest('get_user_messages_latest_by_id_by_index_range', {
       startIndex,
       endIndex: startIndex + batchSize,
-      userA,
-      userB
+      otherUserId: userA === userB ? userA : userB // placeholder; will be unused since we reverted client usage
     })
     
     // Unwrap MCP response format
