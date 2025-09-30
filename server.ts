@@ -285,6 +285,13 @@ async function authenticateMCP(req: any, res: any, next: any) {
             `).get(username, passwordHash);
             
             console.log('MCP Auth - Auto-registered user:', result.username);
+            // Broadcast new user so UI updates immediately
+            const userData = {
+              type: 'new_user',
+              user: { id: result.id, username: result.username, created_at: result.created_at }
+            };
+            broadcastToAllUsers(userData);
+            broadcastToWebSocketClients(userData);
             user = { id: result.id, username: result.username };
           }
         } catch (error) {
