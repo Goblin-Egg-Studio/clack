@@ -132,6 +132,16 @@ export function useClack() {
   // Set up event listeners
   useEffect(() => {
     const handleNewMessage = (message: Message) => {
+      console.log('🔔 handleNewMessage called:', {
+        messageId: message.id,
+        content: message.content.substring(0, 50) + '...',
+        senderId: message.sender_id,
+        userA: message.user_a,
+        userB: message.user_b,
+        currentUserId: currentUserRef.current?.id,
+        currentChatUserId: currentChatUserRef.current?.id
+      })
+
       // Mirror into dataTree for each participant
       setDataTree(prev => {
         const next: DataTree = { ...prev, users: { ...prev.users } }
@@ -176,9 +186,20 @@ export function useClack() {
       })
       
       // Only add message to current view if it's for the current chat user
-      if (currentUserRef.current && currentChatUserRef.current && 
+      const isForCurrentChat = currentUserRef.current && currentChatUserRef.current && 
           ((message.user_a === currentUserRef.current.id && message.user_b === currentChatUserRef.current.id) ||
-           (message.user_b === currentUserRef.current.id && message.user_a === currentChatUserRef.current.id))) {
+           (message.user_b === currentUserRef.current.id && message.user_a === currentChatUserRef.current.id))
+      
+      console.log('🔍 Message visibility check:', {
+        isForCurrentChat,
+        messageUserA: message.user_a,
+        messageUserB: message.user_b,
+        currentUserId: currentUserRef.current?.id,
+        currentChatUserId: currentChatUserRef.current?.id
+      })
+      
+      if (isForCurrentChat) {
+        console.log('✅ Adding message to current view')
         setMessages(prev => {
           // Check for duplicates (optimistic updates)
           const exists = prev.some(msg => 
@@ -187,10 +208,14 @@ export function useClack() {
             Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
           )
           if (!exists) {
+            console.log('📝 Adding new message to messages array')
             return [...prev, message]
           }
+          console.log('⚠️ Message already exists, skipping')
           return prev
         })
+      } else {
+        console.log('❌ Message not for current chat, not adding to view')
       }
 
       // Play sound notification for direct message (only if not from current user)
