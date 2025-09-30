@@ -380,7 +380,7 @@ export function useClack() {
       })
       
       // Load first page of messages between current user and other user
-      const messages = await client.getMessagesBetweenUsersPage(currentUser.id, otherUserId, 0, 10)
+      const messages = await client.getMessagesPage(currentUser.id, 0, 10)
       
       // Store messages in allMessages map
       setAllMessages(prev => {
@@ -418,7 +418,7 @@ export function useClack() {
       }
       
       // Load next page of messages between current user and chat user
-      const newMessages = await client.getMessagesBetweenUsersPage(currentUser.id, currentChatUser.id, pagination.startIndex, 10)
+      const newMessages = await client.getMessagesPage(currentUser.id, pagination.startIndex, 10)
       
       if (newMessages.length === 0) {
         // No more messages
