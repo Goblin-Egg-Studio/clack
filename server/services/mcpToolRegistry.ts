@@ -20,18 +20,33 @@ export interface MCPToolRegistry {
 // Chat-specific MCP tools
 export function createChatTools(db: Database): MCPTool[] {
   return [
+    // Index shortcuts (renames)
     {
-      name: 'send_message',
-      description: 'Send a message between two users',
+      name: 'get_users_by_index',
+      description: 'Get users by index range',
       inputSchema: {
         type: 'object',
         properties: {
-          otherUserId: { type: 'number', description: 'ID of the other user' },
-          content: { type: 'string', description: 'Message content' }
+          startIndex: { type: 'number' },
+          endIndex: { type: 'number' }
         },
-        required: ['otherUserId', 'content']
+        required: ['startIndex', 'endIndex']
       }
     },
+    {
+      name: 'get_rooms_by_index',
+      description: 'Get rooms by index range',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          startIndex: { type: 'number' },
+          endIndex: { type: 'number' }
+        },
+        required: ['startIndex', 'endIndex']
+      }
+    },
+    { name: 'send_user_message_by_id', description: 'Send DM to user by ID', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, content: { type: 'string' } }, required: ['otherUserId', 'content'] } },
+    { name: 'send_user_message_by_username', description: 'Send DM to user by username', inputSchema: { type: 'object', properties: { otherUsername: { type: 'string' }, content: { type: 'string' } }, required: ['otherUsername', 'content'] } },
     {
       name: 'create_room',
       description: 'Create a new chat room',
@@ -130,70 +145,13 @@ export function createChatTools(db: Database): MCPTool[] {
       }
     },
     // Index range getters
-    {
-      name: 'get_users_by_index_range',
-      description: 'Get users by index range (for pagination)',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startIndex: { type: 'number', description: 'Start index (0-based)' },
-          endIndex: { type: 'number', description: 'End index (exclusive)' }
-        },
-        required: ['startIndex', 'endIndex']
-      }
-    },
-    {
-      name: 'get_rooms_by_index_range',
-      description: 'Get rooms by index range (for pagination)',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startIndex: { type: 'number', description: 'Start index (0-based)' },
-          endIndex: { type: 'number', description: 'End index (exclusive)' }
-        },
-        required: ['startIndex', 'endIndex']
-      }
-    },
-    {
-      name: 'get_messages_by_index_range',
-      description: 'Get messages by index range (for pagination)',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startIndex: { type: 'number', description: 'Start index (0-based)' },
-          endIndex: { type: 'number', description: 'End index (exclusive)' },
-          userId: { type: 'number', description: 'User ID to filter messages for' }
-        },
-        required: ['startIndex', 'endIndex', 'userId']
-      }
-    },
-    {
-      name: 'get_messages_between_users_by_index_range',
-      description: 'Get messages between two specific users by index range (for pagination)',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startIndex: { type: 'number', description: 'Start index (0-based)' },
-          endIndex: { type: 'number', description: 'End index (exclusive)' },
-          userA: { type: 'number', description: 'First user ID' },
-          userB: { type: 'number', description: 'Second user ID' }
-        },
-        required: ['startIndex', 'endIndex', 'userA', 'userB']
-      }
-    },
-    {
-      name: 'get_room_messages_by_index_range',
-      description: 'Get room messages by index range (for pagination)',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startIndex: { type: 'number', description: 'Start index (0-based)' },
-          endIndex: { type: 'number', description: 'End index (exclusive)' },
-          roomId: { type: 'number', description: 'Room ID to filter messages for' }
-        },
-        required: ['startIndex', 'endIndex', 'roomId']
-      }
-    },
+    // keep old names for compatibility (temporarily)
+    { name: 'get_users_by_index_range', description: 'Deprecated: use get_users_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
+    { name: 'get_rooms_by_index_range', description: 'Deprecated: use get_rooms_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
+    { name: 'get_user_messages_latest_by_id_by_index_range', description: 'DMs with otherUserId latest-first by range', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['otherUserId', 'startIndex', 'endIndex'] } },
+    { name: 'get_user_messages_latest_by_username_by_index_range', description: 'DMs with otherUsername latest-first by range', inputSchema: { type: 'object', properties: { otherUsername: { type: 'string' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['otherUsername', 'startIndex', 'endIndex'] } },
+    { name: 'get_room_messages_latest_by_id_by_index_range', description: 'Room messages latest-first by range', inputSchema: { type: 'object', properties: { roomId: { type: 'number' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['roomId', 'startIndex', 'endIndex'] } },
+    { name: 'get_room_messages_latest_by_name_by_index_range', description: 'Room messages by name latest-first by range', inputSchema: { type: 'object', properties: { roomName: { type: 'string' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['roomName', 'startIndex', 'endIndex'] } },
     {
       name: 'get_user_rooms',
       description: 'Get rooms that a user is a member of',
@@ -254,7 +212,25 @@ export async function executeToolByName(
   }
 
       switch (toolName) {
-        case 'send_message': {
+        // Renamed index tools
+        case 'get_users_by_index':
+        case 'get_users_by_index_range': {
+          const { startIndex, endIndex } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined) {
+            throw new Error('startIndex and endIndex are required');
+          }
+          return await provider.getUsersByIndexRange(startIndex, endIndex);
+        }
+
+        case 'get_rooms_by_index':
+        case 'get_rooms_by_index_range': {
+          const { startIndex, endIndex } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined) {
+            throw new Error('startIndex and endIndex are required');
+          }
+          return await provider.getRoomsByIndexRange(startIndex, endIndex);
+        }
+        case 'send_user_message_by_id': {
           const { otherUserId, content } = toolArgs;
           const senderId = headers.userId;
           console.log(`[MCP-Tools] Headers received:`, JSON.stringify(headers, null, 2));
@@ -266,6 +242,17 @@ export async function executeToolByName(
           }
           
           return await provider.sendMessage(senderId, otherUserId, content);
+        }
+
+        case 'send_user_message_by_username': {
+          const { otherUsername, content } = toolArgs;
+          const senderId = headers.userId;
+          if (!senderId || !otherUsername || !content) {
+            throw new Error('Missing required field: senderId from authentication or otherUsername/content');
+          }
+          const user = await (provider as any).chatService.getUserByUsername(otherUsername);
+          if (!user) throw new Error('User not found');
+          return await provider.sendMessage(senderId, user.id, content);
         }
 
         case 'create_room': {
@@ -353,23 +340,7 @@ export async function executeToolByName(
         }
 
         // Index range getters
-        case 'get_users_by_index_range': {
-          const { startIndex, endIndex } = toolArgs;
-          if (startIndex === undefined || endIndex === undefined) {
-            throw new Error('startIndex and endIndex are required');
-          }
-          
-          return await provider.getUsersByIndexRange(startIndex, endIndex);
-        }
-
-        case 'get_rooms_by_index_range': {
-          const { startIndex, endIndex } = toolArgs;
-          if (startIndex === undefined || endIndex === undefined) {
-            throw new Error('startIndex and endIndex are required');
-          }
-          
-          return await provider.getRoomsByIndexRange(startIndex, endIndex);
-        }
+        
 
         case 'get_messages_by_index_range': {
           const { startIndex, endIndex, userId } = toolArgs;
@@ -387,29 +358,52 @@ export async function executeToolByName(
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
         }
 
-        case 'get_messages_between_users_by_index_range': {
-          const { startIndex, endIndex, userA, userB } = toolArgs;
+        case 'get_user_messages_latest_by_id_by_index_range': {
+          const { otherUserId, startIndex, endIndex } = toolArgs;
           const authenticatedUserId = headers.userId;
           
-          if (startIndex === undefined || endIndex === undefined || !userA || !userB) {
-            throw new Error('startIndex, endIndex, userA and userB are required');
+          if (startIndex === undefined || endIndex === undefined || !otherUserId) {
+            throw new Error('startIndex, endIndex and otherUserId are required');
           }
           
-          // Security: Only allow users to access messages in conversations they're part of
-          if (!authenticatedUserId || (authenticatedUserId !== userA && authenticatedUserId !== userB)) {
+          // Security
+          if (!authenticatedUserId) {
             throw new Error('Unauthorized: You can only access messages in conversations you participate in');
           }
           
-          return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userA, userB);
+          return await (provider as any).chatService.getMessagesBetweenUsersByIndexRangeLatest(startIndex, endIndex, authenticatedUserId, otherUserId);
         }
 
-        case 'get_room_messages_by_index_range': {
-          const { startIndex, endIndex, roomId } = toolArgs;
+        case 'get_user_messages_latest_by_username_by_index_range': {
+          const { otherUsername, startIndex, endIndex } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          if (startIndex === undefined || endIndex === undefined || !otherUsername) {
+            throw new Error('startIndex, endIndex and otherUsername are required');
+          }
+          if (!authenticatedUserId) {
+            throw new Error('Unauthorized');
+          }
+          const user = await (provider as any).chatService.getUserByUsername(otherUsername);
+          if (!user) throw new Error('User not found');
+          return await (provider as any).chatService.getMessagesBetweenUsersByIndexRangeLatest(startIndex, endIndex, authenticatedUserId, user.id);
+        }
+
+        case 'get_room_messages_latest_by_id_by_index_range': {
+          const { roomId, startIndex, endIndex } = toolArgs;
           if (startIndex === undefined || endIndex === undefined || !roomId) {
             throw new Error('startIndex, endIndex and roomId are required');
           }
-          
-          return await provider.getRoomMessagesByIndexRange(startIndex, endIndex, roomId);
+          return await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, roomId);
+        }
+
+        case 'get_room_messages_latest_by_name_by_index_range': {
+          const { roomName, startIndex, endIndex } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined || !roomName) {
+            throw new Error('startIndex, endIndex and roomName are required');
+          }
+          const room = await (provider as any).chatService.getRoomByName(roomName);
+          if (!room) throw new Error('Room not found');
+          return await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, room.id);
         }
 
         case 'get_user_rooms': {

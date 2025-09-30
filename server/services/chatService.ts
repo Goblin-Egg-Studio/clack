@@ -105,6 +105,23 @@ export class ChatService {
     return users;
   }
 
+  // Lookup helpers
+  async getUserByUsername(username: string): Promise<User | null> {
+    const user = this.db.query('SELECT id, username, created_at FROM users WHERE username = ?').get(username);
+    return user || null;
+  }
+
+  async getRoomByName(name: string): Promise<Room | null> {
+    const room = this.db.query(`
+      SELECT r.*, u.username as created_by_username,
+             (SELECT COUNT(*) FROM room_members WHERE room_id = r.id) as member_count
+      FROM rooms r
+      JOIN users u ON r.created_by = u.id
+      WHERE r.name = ?
+    `).get(name);
+    return room || null;
+  }
+
   // Get a specific user by ID
   async getUserById(userId: number): Promise<User | null> {
     const user = this.db.query('SELECT id, username, created_at FROM users WHERE id = ?').get(userId);
@@ -394,6 +411,20 @@ export class ChatService {
     return messages;
   }
 
+  // Latest-first variants (DESC)
+  async getMessagesBetweenUsersByIndexRangeLatest(startIndex: number, endIndex: number, userA: number, userB: number): Promise<Message[]> {
+    const [userAId, userBId] = userA < userB ? [userA, userB] : [userB, userA];
+    const messages = this.db.query(`
+      SELECT m.id, m.user_a, m.user_b, m.sender_id, m.content, m.created_at, u.username as sender_name
+      FROM messages m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.user_a = ? AND m.user_b = ?
+      ORDER BY m.created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(userAId, userBId, endIndex - startIndex, startIndex);
+    return messages;
+  }
+
   async getRoomMessagesByIndexRange(startIndex: number, endIndex: number, roomId: number): Promise<Message[]> {
     const messages = this.db.query(`
       SELECT m.id, m.room_id, m.sender_id, m.content, m.created_at, u.username as sender_name
@@ -404,6 +435,18 @@ export class ChatService {
       LIMIT ? OFFSET ?
     `).all(roomId, endIndex - startIndex, startIndex);
     
+    return messages;
+  }
+
+  async getRoomMessagesByIndexRangeLatest(startIndex: number, endIndex: number, roomId: number): Promise<Message[]> {
+    const messages = this.db.query(`
+      SELECT m.id, m.room_id, m.sender_id, m.content, m.created_at, u.username as sender_name
+      FROM messages m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.room_id = ?
+      ORDER BY m.created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(roomId, endIndex - startIndex, startIndex);
     return messages;
   }
 
