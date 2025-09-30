@@ -1,11 +1,5 @@
 # Changelog
 
-## 0.6.20 - Convert shared validation to JavaScript
-- **Fix**: Convert shared validation from TypeScript to JavaScript
-- **Server**: Fix 502 error by making validation module importable
-- **Validation**: Restore shared validation system with JavaScript module
-- **Version**: Bump to 0.6.20 (monorepo)
-
 ## 0.6.19 - Fix import path for shared validation in MCP server
 - **Fix**: Correct import path for shared validation module in MCP tool registry
 - **Server**: Fix 502 error caused by incorrect module import path

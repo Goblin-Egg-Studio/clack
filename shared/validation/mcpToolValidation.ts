@@ -1,5 +1,25 @@
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+}
+
+export interface MCPToolSchema {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: string;
+    properties: Record<string, any>;
+    required?: string[];
+  };
+}
+
 // MCP Tool schemas
-export const MCP_TOOL_SCHEMAS = [
+export const MCP_TOOL_SCHEMAS: MCPToolSchema[] = [
   {
     name: 'send_message',
     description: 'Send a message between two users',
@@ -336,7 +356,7 @@ export const MCP_TOOL_SCHEMAS = [
 ];
 
 // Validation functions
-export function validateMCPToolArguments(toolName, args) {
+export function validateMCPToolArguments(toolName: string, args: any): ValidationResult {
   const schema = MCP_TOOL_SCHEMAS.find(s => s.name === toolName);
   if (!schema) {
     return {
@@ -379,8 +399,8 @@ export function validateMCPToolArguments(toolName, args) {
   };
 }
 
-function validateField(field, value, schema) {
-  const errors = [];
+function validateField(field: string, value: any, schema: any): ValidationError[] {
+  const errors: ValidationError[] = [];
 
   // Type validation
   if (schema.type === 'string' && typeof value !== 'string') {
@@ -431,11 +451,11 @@ function validateField(field, value, schema) {
 }
 
 // Helper function to get tool schema
-export function getMCPToolSchema(toolName) {
+export function getMCPToolSchema(toolName: string): MCPToolSchema | undefined {
   return MCP_TOOL_SCHEMAS.find(s => s.name === toolName);
 }
 
 // Helper function to get all tool schemas
-export function getAllMCPToolSchemas() {
+export function getAllMCPToolSchemas(): MCPToolSchema[] {
   return MCP_TOOL_SCHEMAS;
 }
