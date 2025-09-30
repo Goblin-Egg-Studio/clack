@@ -382,7 +382,8 @@ export async function executeToolByName(
             throw new Error('Unauthorized: You must be authenticated');
           }
           
-          return await provider.getMessagesBetweenUsersByIndexRange(0, limit, authenticatedUserId, otherUserId);
+          // Use the latest-first method so index 0 = newest message
+          return await provider.getMessagesBetweenUsersByIndexRangeLatest(0, limit, authenticatedUserId, otherUserId);
         }
 
         case 'get_user_messages_latest_by_id_by_index_range': {
