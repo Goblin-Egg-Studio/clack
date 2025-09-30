@@ -39,10 +39,9 @@ export function createChatTools(db: Database): MCPTool[] {
         type: 'object',
         properties: {
           name: { type: 'string', description: 'Room name' },
-          description: { type: 'string', description: 'Room description' },
-          createdBy: { type: 'number', description: 'ID of the user creating the room' }
+          description: { type: 'string', description: 'Room description' }
         },
-        required: ['name', 'description', 'createdBy']
+        required: ['name']
       }
     },
     {
@@ -51,10 +50,9 @@ export function createChatTools(db: Database): MCPTool[] {
       inputSchema: {
         type: 'object',
         properties: {
-          roomId: { type: 'number', description: 'ID of the room to join' },
-          userId: { type: 'number', description: 'ID of the user joining' }
+          roomId: { type: 'number', description: 'ID of the room to join' }
         },
-        required: ['roomId', 'userId']
+        required: ['roomId']
       }
     },
     {
@@ -63,10 +61,9 @@ export function createChatTools(db: Database): MCPTool[] {
       inputSchema: {
         type: 'object',
         properties: {
-          roomId: { type: 'number', description: 'ID of the room to leave' },
-          userId: { type: 'number', description: 'ID of the user leaving' }
+          roomId: { type: 'number', description: 'ID of the room to leave' }
         },
-        required: ['roomId', 'userId']
+        required: ['roomId']
       }
     },
     {

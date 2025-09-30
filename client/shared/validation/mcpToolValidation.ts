@@ -32,7 +32,7 @@ const MCP_TOOL_SCHEMAS: Record<string, any> = {
       name: { type: 'string', description: 'Room name' },
       description: { type: 'string', description: 'Room description' }
     },
-    required: ['name', 'description']
+    required: ['name']
   },
   'join_room': {
     type: 'object',
@@ -47,6 +47,98 @@ const MCP_TOOL_SCHEMAS: Record<string, any> = {
       roomId: { type: 'number', description: 'ID of the room to leave' }
     },
     required: ['roomId']
+  },
+  'get_users_by_time_range': {
+    type: 'object',
+    properties: {
+      startTime: { type: 'string', description: 'Start time in ISO format' },
+      endTime: { type: 'string', description: 'End time in ISO format' }
+    },
+    required: ['startTime', 'endTime']
+  },
+  'get_rooms_by_time_range': {
+    type: 'object',
+    properties: {
+      startTime: { type: 'string', description: 'Start time in ISO format' },
+      endTime: { type: 'string', description: 'End time in ISO format' }
+    },
+    required: ['startTime', 'endTime']
+  },
+  'get_messages_by_time_range': {
+    type: 'object',
+    properties: {
+      startTime: { type: 'string', description: 'Start time in ISO format' },
+      endTime: { type: 'string', description: 'End time in ISO format' },
+      userId: { type: 'number', description: 'User ID to filter messages for' }
+    },
+    required: ['startTime', 'endTime', 'userId']
+  },
+  'get_room_messages_by_time_range': {
+    type: 'object',
+    properties: {
+      startTime: { type: 'string', description: 'Start time in ISO format' },
+      endTime: { type: 'string', description: 'End time in ISO format' },
+      roomId: { type: 'number', description: 'Room ID to filter messages for' }
+    },
+    required: ['startTime', 'endTime', 'roomId']
+  },
+  'get_users_by_index_range': {
+    type: 'object',
+    properties: {
+      startIndex: { type: 'number', description: 'Start index (0-based)' },
+      endIndex: { type: 'number', description: 'End index (exclusive)' }
+    },
+    required: ['startIndex', 'endIndex']
+  },
+  'get_rooms_by_index_range': {
+    type: 'object',
+    properties: {
+      startIndex: { type: 'number', description: 'Start index (0-based)' },
+      endIndex: { type: 'number', description: 'End index (exclusive)' }
+    },
+    required: ['startIndex', 'endIndex']
+  },
+  'get_messages_by_index_range': {
+    type: 'object',
+    properties: {
+      startIndex: { type: 'number', description: 'Start index (0-based)' },
+      endIndex: { type: 'number', description: 'End index (exclusive)' },
+      userId: { type: 'number', description: 'User ID to filter messages for' }
+    },
+    required: ['startIndex', 'endIndex', 'userId']
+  },
+  'get_room_messages_by_index_range': {
+    type: 'object',
+    properties: {
+      startIndex: { type: 'number', description: 'Start index (0-based)' },
+      endIndex: { type: 'number', description: 'End index (exclusive)' },
+      roomId: { type: 'number', description: 'Room ID to filter messages for' }
+    },
+    required: ['startIndex', 'endIndex', 'roomId']
+  },
+  'get_user_rooms': {
+    type: 'object',
+    properties: {
+      userId: { type: 'number', description: 'User ID' }
+    },
+    required: ['userId']
+  },
+  'change_room_owner': {
+    type: 'object',
+    properties: {
+      roomId: { type: 'number', description: 'Room ID' },
+      newOwnerId: { type: 'number', description: 'New owner user ID' },
+      currentOwnerId: { type: 'number', description: 'Current owner user ID' }
+    },
+    required: ['roomId', 'newOwnerId', 'currentOwnerId']
+  },
+  'delete_room': {
+    type: 'object',
+    properties: {
+      roomId: { type: 'number', description: 'Room ID' },
+      ownerId: { type: 'number', description: 'Owner user ID' }
+    },
+    required: ['roomId', 'ownerId']
   }
 };
 
