@@ -94,57 +94,6 @@ export function createChatTools(db: Database): MCPTool[] {
         required: ['roomId', 'content']
       }
     },
-    // Time range getters
-    {
-      name: 'get_users_by_time_range',
-      description: 'Get users created within a time range',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startTime: { type: 'string', description: 'Start time in ISO format' },
-          endTime: { type: 'string', description: 'End time in ISO format' }
-        },
-        required: ['startTime', 'endTime']
-      }
-    },
-    {
-      name: 'get_rooms_by_time_range',
-      description: 'Get rooms created within a time range',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startTime: { type: 'string', description: 'Start time in ISO format' },
-          endTime: { type: 'string', description: 'End time in ISO format' }
-        },
-        required: ['startTime', 'endTime']
-      }
-    },
-    {
-      name: 'get_messages_by_time_range',
-      description: 'Get messages sent within a time range',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startTime: { type: 'string', description: 'Start time in ISO format' },
-          endTime: { type: 'string', description: 'End time in ISO format' },
-          userId: { type: 'number', description: 'User ID to filter messages for' }
-        },
-        required: ['startTime', 'endTime', 'userId']
-      }
-    },
-    {
-      name: 'get_room_messages_by_time_range',
-      description: 'Get room messages sent within a time range',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          startTime: { type: 'string', description: 'Start time in ISO format' },
-          endTime: { type: 'string', description: 'End time in ISO format' },
-          roomId: { type: 'number', description: 'Room ID to filter messages for' }
-        },
-        required: ['startTime', 'endTime', 'roomId']
-      }
-    },
     // Index range getters
     // keep old names for compatibility (temporarily)
     { name: 'get_users_by_index_range', description: 'Deprecated: use get_users_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
@@ -338,49 +287,6 @@ export async function executeToolByName(
           return await provider.sendRoomMessage(senderId, roomId, content);
         }
 
-        // Time range getters
-        case 'get_users_by_time_range': {
-          const { startTime, endTime } = toolArgs;
-          if (!startTime || !endTime) {
-            throw new Error('startTime and endTime are required');
-          }
-          
-          return await provider.getUsersByTimeRange(startTime, endTime);
-        }
-
-        case 'get_rooms_by_time_range': {
-          const { startTime, endTime } = toolArgs;
-          if (!startTime || !endTime) {
-            throw new Error('startTime and endTime are required');
-          }
-          
-          return await provider.getRoomsByTimeRange(startTime, endTime);
-        }
-
-        case 'get_messages_by_time_range': {
-          const { startTime, endTime, userId } = toolArgs;
-          const authenticatedUserId = headers.userId;
-          
-          if (!startTime || !endTime || !userId) {
-            throw new Error('startTime, endTime and userId are required');
-          }
-          
-          // Security: Only allow users to access their own messages
-          if (!authenticatedUserId || authenticatedUserId !== userId) {
-            throw new Error('Unauthorized: You can only access your own messages');
-          }
-          
-          return await provider.getMessagesByTimeRange(startTime, endTime, userId);
-        }
-
-        case 'get_room_messages_by_time_range': {
-          const { startTime, endTime, roomId } = toolArgs;
-          if (!startTime || !endTime || !roomId) {
-            throw new Error('startTime, endTime and roomId are required');
-          }
-          
-          return await provider.getRoomMessagesByTimeRange(startTime, endTime, roomId);
-        }
 
         // Index range getters
         
