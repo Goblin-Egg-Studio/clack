@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.19 - Remove senderId requirement from chat messages
+- **Feature**: Remove senderId parameter requirement from send_message and send_room_message MCP tools
+- **Feature**: Server now uses authenticated user ID from headers instead of requiring client to send senderId
+- **Fix**: Update client SDK to remove senderId parameter from sendMessage and sendRoomMessage methods
+- **Fix**: Create shared validation schema to match server-side tool requirements
+- **Version**: Bump to 0.6.19 (monorepo)
+
 ## 0.6.18 - Revert shared validation and fix setup permissions
 - **Fix**: Remove shared MCP validation imports to stop runtime crashes on deploy box
 - **Ops**: Update Linode setup script to chown `/opt/clack/data` so database file creation succeeds

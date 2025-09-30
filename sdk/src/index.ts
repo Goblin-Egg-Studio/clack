@@ -312,8 +312,8 @@ export class ClackClient extends EventEmitter {
   }
 
   // Chat service methods
-  async sendMessage(senderId: number, otherUserId: number, content: string): Promise<Message> {
-    const result = await this.makeMCPRequest('send_message', { senderId, otherUserId, content })
+  async sendMessage(otherUserId: number, content: string): Promise<Message> {
+    const result = await this.makeMCPRequest('send_message', { otherUserId, content })
     return result.content[0].text ? JSON.parse(result.content[0].text).message : null
   }
 
@@ -332,8 +332,8 @@ export class ClackClient extends EventEmitter {
     return result.content[0].text ? JSON.parse(result.content[0].text).success : false
   }
 
-  async sendRoomMessage(senderId: number, roomId: number, content: string): Promise<Message> {
-    const result = await this.makeMCPRequest('send_room_message', { senderId, roomId, content })
+  async sendRoomMessage(roomId: number, content: string): Promise<Message> {
+    const result = await this.makeMCPRequest('send_room_message', { roomId, content })
     return result.content[0].text ? JSON.parse(result.content[0].text).message : null
   }
 

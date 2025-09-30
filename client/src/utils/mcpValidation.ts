@@ -1,4 +1,4 @@
-import { validateMCPToolArguments, getMCPToolSchema, ValidationResult } from '../../../shared/validation/mcpToolValidation';
+import { validateMCPToolArguments, getMCPToolSchema, ValidationResult } from '../../shared/validation/mcpToolValidation';
 
 // Re-export validation functions for client use
 export { validateMCPToolArguments, getMCPToolSchema, ValidationResult };

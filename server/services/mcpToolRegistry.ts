@@ -26,11 +26,10 @@ export function createChatTools(db: Database): MCPTool[] {
       inputSchema: {
         type: 'object',
         properties: {
-          senderId: { type: 'number', description: 'ID of the user sending the message' },
           otherUserId: { type: 'number', description: 'ID of the other user' },
           content: { type: 'string', description: 'Message content' }
         },
-        required: ['senderId', 'otherUserId', 'content']
+        required: ['otherUserId', 'content']
       }
     },
     {
@@ -76,11 +75,10 @@ export function createChatTools(db: Database): MCPTool[] {
       inputSchema: {
         type: 'object',
         properties: {
-          senderId: { type: 'number', description: 'ID of the user sending the message' },
           roomId: { type: 'number', description: 'ID of the room' },
           content: { type: 'string', description: 'Message content' }
         },
-        required: ['senderId', 'roomId', 'content']
+        required: ['roomId', 'content']
       }
     },
     // Time range getters
@@ -253,7 +251,7 @@ export async function executeToolByName(
           console.log(`[MCP-Tools] headers.userId: ${headers.userId}`);
           console.log(`[MCP-Tools] headers.username: ${headers.username}`);
           if (!senderId || !otherUserId || !content) {
-            throw new Error('Missing required field: senderId');
+            throw new Error('Missing required field: senderId from authentication or otherUserId/content');
           }
           
           return await provider.sendMessage(senderId, otherUserId, content);
