@@ -23,6 +23,25 @@ app.get('/__health', (_req, res) => {
   });
 });
 
+// Debug endpoint to check server version and tool registration
+app.get('/__debug', async (_req, res) => {
+  try {
+    const versionData = await getVersionData();
+    const tools = await mcpServer.getToolsList();
+    const toolNames = tools.map(tool => tool.name).sort();
+    
+    res.json({
+      serverVersion: versionData,
+      toolCount: tools.length,
+      toolNames: toolNames,
+      hasNewTool: toolNames.includes('get_user_messages_latest'),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Helper function to get version data
 async function getVersionData() {
   try {

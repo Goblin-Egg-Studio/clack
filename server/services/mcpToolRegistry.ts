@@ -99,6 +99,7 @@ export function createChatTools(db: Database): MCPTool[] {
     // keep old names for compatibility (temporarily)
     { name: 'get_users_by_index_range', description: 'Deprecated: use get_users_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
     { name: 'get_rooms_by_index_range', description: 'Deprecated: use get_rooms_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
+    { name: 'debug_test_tool', description: 'Debug tool to test server updates', inputSchema: { type: 'object', properties: {}, required: [] } },
     { name: 'get_user_messages_latest', description: 'Get latest messages with specific user', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, limit: { type: 'number', description: 'Number of messages to return (default: 50)' } }, required: ['otherUserId'] } },
     { name: 'get_user_messages_latest_by_id_by_index_range', description: 'DMs with otherUserId latest-first by range', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['otherUserId', 'startIndex', 'endIndex'] } },
     { name: 'get_user_messages_latest_by_username_by_index_range', description: 'DMs with otherUsername latest-first by range', inputSchema: { type: 'object', properties: { otherUsername: { type: 'string' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['otherUsername', 'startIndex', 'endIndex'] } },
@@ -381,6 +382,15 @@ export async function executeToolByName(
           return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, authenticatedUserId, otherUserId);
         }
 
+
+        case 'debug_test_tool': {
+          return { 
+            success: true, 
+            message: 'Debug tool working - server updated!',
+            timestamp: new Date().toISOString(),
+            serverVersion: '0.6.28'
+          };
+        }
 
         case 'get_user_messages_latest': {
           const { otherUserId, limit = 50 } = toolArgs;
