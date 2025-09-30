@@ -328,36 +328,54 @@ export async function executeToolByName(
 
         case 'get_rooms_by_index_range': {
           const { startIndex, endIndex } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined) {
+            throw new Error('startIndex and endIndex are required');
+          }
           
           return await provider.getRoomsByIndexRange(startIndex, endIndex);
         }
 
         case 'get_messages_by_index_range': {
           const { startIndex, endIndex, userId } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined || !userId) {
+            throw new Error('startIndex, endIndex and userId are required');
+          }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
         }
 
         case 'get_room_messages_by_index_range': {
           const { startIndex, endIndex, roomId } = toolArgs;
+          if (startIndex === undefined || endIndex === undefined || !roomId) {
+            throw new Error('startIndex, endIndex and roomId are required');
+          }
           
           return await provider.getRoomMessagesByIndexRange(startIndex, endIndex, roomId);
         }
 
         case 'get_user_rooms': {
           const { userId } = toolArgs;
+          if (!userId) {
+            throw new Error('userId is required');
+          }
           
           return await provider.getUserRooms(userId);
         }
 
         case 'change_room_owner': {
           const { roomId, newOwnerId, currentOwnerId } = toolArgs;
+          if (!roomId || !newOwnerId || !currentOwnerId) {
+            throw new Error('roomId, newOwnerId, and currentOwnerId are required');
+          }
           
           return await provider.changeRoomOwner(roomId, newOwnerId, currentOwnerId);
         }
 
         case 'delete_room': {
           const { roomId, ownerId } = toolArgs;
+          if (!roomId || !ownerId) {
+            throw new Error('roomId and ownerId are required');
+          }
           
           return await provider.deleteRoom(roomId, ownerId);
         }

@@ -345,7 +345,7 @@ export function validateMCPToolArguments(toolName, args) {
     };
   }
 
-  const errors: ValidationError[] = [];
+  const errors = [];
   const { properties, required = [] } = schema.inputSchema;
 
   // Check required fields
