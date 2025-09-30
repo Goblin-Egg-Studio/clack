@@ -404,7 +404,7 @@ export class ChatService {
       FROM messages m
       JOIN users u ON m.sender_id = u.id
       WHERE m.user_a = ? AND m.user_b = ?
-      ORDER BY m.created_at ASC
+      ORDER BY m.created_at DESC
       LIMIT ? OFFSET ?
     `).all(userAId, userBId, endIndex - startIndex, startIndex);
     
