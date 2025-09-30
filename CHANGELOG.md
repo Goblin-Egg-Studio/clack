@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.22 - Add .cursor/ to gitignore
+- **Git**: Add .cursor/ directory to .gitignore to prevent IDE files from being tracked
+- **Version**: Bump to 0.6.22 (monorepo)
+
 ## 0.6.21 - Update sidebar labels for better UX
 - **UI**: Change "Direct Messages" to "Users" in sidebar
 - **UI**: Change "Chat Rooms" to "Rooms" in sidebar
