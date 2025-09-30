@@ -96,13 +96,7 @@ else
   log "Database already exists, preserving data"
 fi
 
-# Install watchdog service
-log "Installing watchdog service..."
-sudo cp "$APP_DIR/systemd/clack-watchdog.service" /etc/systemd/system/
-sudo cp "$APP_DIR/systemd/clack-watchdog.timer" /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable clack-watchdog.timer
-sudo systemctl start clack-watchdog.timer
+# Watchdog removed for simplicity (systemd handles restarts)
 
 # Start service
 if ! systemctl is-active --quiet clack@$CURRENT_USER; then
