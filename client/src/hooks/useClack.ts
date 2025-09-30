@@ -209,7 +209,17 @@ export function useClack() {
           )
           if (!exists) {
             console.log('📝 Adding new message to messages array')
-            return [...prev, message]
+            const newMessages = [...prev, message]
+            console.log('📊 Messages array after adding:', {
+              previousLength: prev.length,
+              newLength: newMessages.length,
+              addedMessage: {
+                id: message.id,
+                content: message.content.substring(0, 30) + '...',
+                sender_id: message.sender_id
+              }
+            })
+            return newMessages
           }
           console.log('⚠️ Message already exists, skipping')
           return prev
