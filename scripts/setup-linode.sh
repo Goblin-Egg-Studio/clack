@@ -53,10 +53,10 @@ log "Installing client dependencies"; cd "$APP_DIR/client" && export PATH="$HOME
 log "Building application"; cd "$APP_DIR" && export PATH="$HOME/.bun/bin:$PATH" && bun run build
 
 # Systemd service
-if [ ! -f "/etc/systemd/system/clack.service" ] || ! cmp -s "$APP_DIR/systemd/clack.service" /etc/systemd/system/clack.service; then
-  log "Updating systemd unit"; sudo cp "$APP_DIR/systemd/clack.service" /etc/systemd/system/clack.service
+if [ ! -f "/etc/systemd/system/clack@.service" ] || ! cmp -s "$APP_DIR/systemd/clack@.service" /etc/systemd/system/clack@.service; then
+  log "Updating systemd unit"; sudo cp "$APP_DIR/systemd/clack@.service" /etc/systemd/system/clack@.service
 else
-  log "Systemd unit already up to date"
+  log "Systemd template unit already up to date"
 fi
 sudo systemctl daemon-reload
 sudo systemctl enable clack@$CURRENT_USER || true
