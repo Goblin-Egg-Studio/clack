@@ -27,7 +27,8 @@ app.get('/__health', (_req, res) => {
 app.get('/__debug', async (_req, res) => {
   try {
     const versionData = await getVersionData();
-    const tools = await mcpServer.getToolsList();
+    const { getToolsList } = await import('./server/services/mcpToolRegistry.js');
+    const tools = await getToolsList(db);
     const toolNames = tools.map(tool => tool.name).sort();
     
     res.json({
@@ -35,6 +36,7 @@ app.get('/__debug', async (_req, res) => {
       toolCount: tools.length,
       toolNames: toolNames,
       hasNewTool: toolNames.includes('get_user_messages_latest'),
+      hasDebugTool: toolNames.includes('debug_test_tool'),
       timestamp: new Date().toISOString()
     });
   } catch (error) {
