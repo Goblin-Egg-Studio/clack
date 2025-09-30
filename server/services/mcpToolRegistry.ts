@@ -117,6 +117,15 @@ export function createChatTools(db: Database): MCPTool[] {
       }
     },
     {
+      name: 'debug_test_tool',
+      description: 'Debug tool to test server updates',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: []
+      }
+    },
+    {
       name: 'get_messages_between_users_by_index_range',
       description: 'Get messages between authenticated user and specific other user (secure)',
       inputSchema: {
@@ -344,6 +353,10 @@ export async function executeToolByName(
           }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
+        }
+
+        case 'debug_test_tool': {
+          return { success: true, message: 'Debug tool working - server updated!' };
         }
 
         case 'get_messages_between_users_by_index_range': {
