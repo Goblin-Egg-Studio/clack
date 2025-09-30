@@ -585,11 +585,13 @@ export class ClackClient extends EventEmitter {
   }
 
   async getMessagesBetweenUsersPage(authenticatedUserId: number, otherUserId: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
-    // Temporarily use the working approach until server picks up new tool
-    const result = await this.makeMCPRequest('get_messages_by_index_range', {
+    // Use the existing getMessagesBetweenUsersByIndexRange method from ChatService
+    // This does proper server-side filtering
+    const result = await this.makeMCPRequest('get_messages_between_users_by_index_range', {
       startIndex,
       endIndex: startIndex + batchSize,
-      userId: authenticatedUserId
+      userA: authenticatedUserId,
+      userB: otherUserId
     })
     
     // Unwrap MCP response format
@@ -601,20 +603,8 @@ export class ClackClient extends EventEmitter {
       return []
     }
     
-    // Filter to specific conversation (temporary until server tool is available)
-    const filteredMessages = unwrappedResult.messages.filter((msg: Message) => 
-      (msg.user_a === authenticatedUserId && msg.user_b === otherUserId) ||
-      (msg.user_b === authenticatedUserId && msg.user_a === otherUserId)
-    )
-    
-    console.log('getMessagesBetweenUsersPage Debug:')
-    console.log('- Authenticated user:', authenticatedUserId)
-    console.log('- Other user:', otherUserId)
-    console.log('- Total messages from server:', unwrappedResult.messages.length)
-    console.log('- Filtered messages:', filteredMessages.length)
-    console.log('- Sample message:', unwrappedResult.messages[0])
-    
-    return filteredMessages
+    // No client-side filtering needed - server returns exactly what we want
+    return unwrappedResult.messages
   }
 
   // Human-friendly MCP helpers using usernames and room names

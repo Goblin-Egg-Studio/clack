@@ -117,16 +117,17 @@ export function createChatTools(db: Database): MCPTool[] {
       }
     },
     {
-      name: 'get_messages_with_user_by_index_range',
-      description: 'Get messages between authenticated user and specific other user',
+      name: 'get_messages_between_users_by_index_range',
+      description: 'Get messages between authenticated user and specific other user (secure)',
       inputSchema: {
         type: 'object',
         properties: {
           startIndex: { type: 'number', description: 'Start index (0-based)' },
           endIndex: { type: 'number', description: 'End index (exclusive)' },
-          otherUserId: { type: 'number', description: 'Other user ID to get messages with' }
+          userA: { type: 'number', description: 'First user ID (must be authenticated user)' },
+          userB: { type: 'number', description: 'Second user ID' }
         },
-        required: ['startIndex', 'endIndex', 'otherUserId']
+        required: ['startIndex', 'endIndex', 'userA', 'userB']
       }
     },
     {
@@ -345,20 +346,20 @@ export async function executeToolByName(
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
         }
 
-        case 'get_messages_with_user_by_index_range': {
-          const { startIndex, endIndex, otherUserId } = toolArgs;
+        case 'get_messages_between_users_by_index_range': {
+          const { startIndex, endIndex, userA, userB } = toolArgs;
           const authenticatedUserId = headers.userId;
           
-          if (startIndex === undefined || endIndex === undefined || !otherUserId) {
-            throw new Error('startIndex, endIndex and otherUserId are required');
+          if (startIndex === undefined || endIndex === undefined || !userA || !userB) {
+            throw new Error('startIndex, endIndex, userA and userB are required');
           }
           
-          // Security: Only allow users to access their own messages
-          if (!authenticatedUserId) {
-            throw new Error('Unauthorized: You must be authenticated');
+          // Security: Only allow users to access conversations they're part of
+          if (!authenticatedUserId || (authenticatedUserId !== userA && authenticatedUserId !== userB)) {
+            throw new Error('Unauthorized: You can only access conversations you are part of');
           }
           
-          return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, authenticatedUserId, otherUserId);
+          return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userA, userB);
         }
 
 
