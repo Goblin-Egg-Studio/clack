@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.23 - Force redeploy to fix MCP tool registration
+- **Deploy**: Force redeploy to ensure new MCP tool is properly registered
+- **Fix**: Ensure get_messages_between_users_by_index_range tool is available
+- **Version**: Bump to 0.6.23 (monorepo)
+
 ## 0.6.22 - Add .cursor/ to gitignore
 - **Git**: Add .cursor/ directory to .gitignore to prevent IDE files from being tracked
 - **Version**: Bump to 0.6.22 (monorepo)
