@@ -1,5 +1,5 @@
 import { getToolsList, executeToolByName, buildRegistry } from './mcpToolRegistry.js';
-import { validateMCPToolArguments } from '../../shared/validation/mcpToolValidation.js';
+import { validateMCPToolArguments } from '../../../shared/validation/mcpToolValidation.js';
 import { ProviderRegistry } from './providerRegistry.js';
 import {
     JSONRPC_VERSION,
