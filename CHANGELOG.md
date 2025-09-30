@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.27 - Server-side message filtering implementation
+
+### Fixed
+- Implemented proper server-side message filtering
+- Removed all client-side filtering logic
+- Added secure `get_messages_between_users_by_index_range` MCP tool
+- Server-side filtering with proper security checks
+- Users can only access conversations they're part of
+
 ## 0.6.25 - DataTree refactor: JSON Patch support and normalized client state
 - **Architecture**: Implement normalized dataTree structure (users, rooms, messages maps) for efficient state management
 - **JSON Patch**: Add JSON Patch applier to handle server responses and SSE updates directly into dataTree
