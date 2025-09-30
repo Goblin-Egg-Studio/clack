@@ -20,10 +20,14 @@ interface ClackContextType {
   sendMessage: (content: string) => Promise<void>
   startChat: (otherUserId: number) => Promise<void>
   selectChat: (otherUser: User) => Promise<void>
+  // Human-friendly helpers
+  startChatByUsername: (username: string) => Promise<void>
+  selectChatByUsername: (username: string) => Promise<void>
   createRoom: (name: string, description: string) => Promise<Room>
   joinRoom: (roomId: number) => Promise<boolean>
   leaveRoom: (roomId: number) => Promise<boolean>
   selectRoom: (room: Room) => Promise<void>
+  selectRoomByName: (roomName: string) => Promise<void>
   sendRoomMessage: (content: string) => Promise<void>
   authenticate: (token: string, user: User) => Promise<void>
   loadMessages: (otherUserId: number) => Promise<void>

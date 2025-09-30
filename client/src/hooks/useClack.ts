@@ -693,6 +693,21 @@ export function useClack() {
     await loadMessages(otherUser.id)
   }, [loadMessages])
 
+  // Human-friendly helpers
+  const startChatByUsername = useCallback(async (username: string): Promise<void> => {
+    const id = usernameToId[username]
+    if (!id) throw new Error(`Unknown user: ${username}`)
+    await startChat(id)
+  }, [usernameToId, startChat])
+
+  const selectChatByUsername = useCallback(async (username: string): Promise<void> => {
+    const id = usernameToId[username]
+    if (!id) throw new Error(`Unknown user: ${username}`)
+    const user = users.find(u => u.id === id)
+    if (!user) throw new Error(`User not loaded: ${username}`)
+    await selectChat(user)
+  }, [usernameToId, users, selectChat])
+
       const createRoom = useCallback(async (name: string, description: string): Promise<Room> => {
         if (!currentUser) throw new Error('User not authenticated')
         
@@ -770,6 +785,14 @@ export function useClack() {
           setIsLoading(false)
         }
       }, [allRoomMessages, client])
+
+      const selectRoomByName = useCallback(async (roomName: string): Promise<void> => {
+        const id = roomNameToId[roomName]
+        if (!id) throw new Error(`Unknown room: ${roomName}`)
+        const room = rooms.find(r => r.id === id)
+        if (!room) throw new Error(`Room not loaded: ${roomName}`)
+        await selectRoom(room)
+      }, [roomNameToId, rooms, selectRoom])
 
       const loadMoreRoomMessages = useCallback(async () => {
         if (!currentRoom || isLoadingMore) return
@@ -936,10 +959,13 @@ export function useClack() {
         sendMessage,
         startChat,
         selectChat,
+        startChatByUsername,
+        selectChatByUsername,
         createRoom,
         joinRoom,
         leaveRoom,
         selectRoom,
+        selectRoomByName,
         sendRoomMessage,
         authenticate,
         loadMessages,
