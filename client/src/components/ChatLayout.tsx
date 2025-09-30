@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
 import { useClackContext } from '../contexts/ClackContext'
+import { ContextualRightSidebar } from './ContextualRightSidebar'
 
 export function ChatLayout() {
   const location = useLocation()
@@ -157,71 +158,8 @@ export function ChatLayout() {
         <Outlet />
       </div>
       
-      {/* Right Sidebar - Action Panel */}
-      <div className="w-80 bg-gray-50 border-l border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Actions</h3>
-          <p className="text-sm text-gray-600">Quick actions and tools</p>
-        </div>
-        
-        <div className="flex-1 p-4 space-y-4">
-          {/* User Actions */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">👥 User Management</h4>
-            <div className="space-y-2">
-              <Link
-                to="/users"
-                className={`block w-full px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/users'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Manage Users
-              </Link>
-              <Link
-                to="/rooms"
-                className={`block w-full px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/rooms'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Manage Rooms
-              </Link>
-            </div>
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">⚡ Quick Actions</h4>
-            <div className="space-y-2">
-              <button
-                onClick={() => navigate('/users')}
-                className="block w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors"
-              >
-                Register New User
-              </button>
-              <button
-                onClick={() => navigate('/rooms')}
-                className="block w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
-              >
-                Create New Room
-              </button>
-            </div>
-          </div>
-          
-          {/* System Info */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">ℹ️ System Info</h4>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>Logged in as: <span className="font-medium">{currentUser?.username}</span></div>
-              <div>Users online: <span className="font-medium">{users.length}</span></div>
-              <div>Rooms available: <span className="font-medium">{rooms.length}</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Contextual Right Sidebar */}
+      <ContextualRightSidebar />
     </div>
   )
 }
