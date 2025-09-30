@@ -103,6 +103,19 @@ export function createChatTools(db: Database): MCPTool[] {
     { name: 'get_room_messages_latest_by_id_by_index_range', description: 'Room messages latest-first by range', inputSchema: { type: 'object', properties: { roomId: { type: 'number' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['roomId', 'startIndex', 'endIndex'] } },
     { name: 'get_room_messages_latest_by_name_by_index_range', description: 'Room messages by name latest-first by range', inputSchema: { type: 'object', properties: { roomName: { type: 'string' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['roomName', 'startIndex', 'endIndex'] } },
     {
+      name: 'get_messages_by_index_range',
+      description: 'Get messages by index range for authenticated user',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          startIndex: { type: 'number', description: 'Start index (0-based)' },
+          endIndex: { type: 'number', description: 'End index (exclusive)' },
+          userId: { type: 'number', description: 'User ID to filter messages for' }
+        },
+        required: ['startIndex', 'endIndex', 'userId']
+      }
+    },
+    {
       name: 'get_user_rooms',
       description: 'Get rooms that a user is a member of',
       inputSchema: {
