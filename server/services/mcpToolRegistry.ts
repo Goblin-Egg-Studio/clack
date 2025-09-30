@@ -174,6 +174,19 @@ export async function getToolsList(db: Database): Promise<MCPTool[]> {
   return createChatTools(db);
 }
 
+/**
+ * CRITICAL SECURITY PRINCIPLE:
+ * ALL MCP TOOLS MUST OPERATE IN THE CONTEXT OF THE AUTHENTICATED USER
+ * 
+ * This means:
+ * - Users can ONLY access their own data
+ * - Users can ONLY access conversations they participate in
+ * - Users can ONLY access rooms they are members of
+ * - Users can ONLY perform actions they are authorized for
+ * 
+ * NEVER allow users to access other users' data or perform unauthorized actions.
+ * Always validate that headers.userId matches the requested user context.
+ */
 export async function executeToolByName(
   toolName: string, 
   toolArgs: Record<string, any>, 
@@ -422,9 +435,18 @@ export async function executeToolByName(
 
         case 'get_room_messages_latest_by_id_by_index_range': {
           const { roomId, startIndex, endIndex } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (startIndex === undefined || endIndex === undefined || !roomId) {
             throw new Error('startIndex, endIndex and roomId are required');
           }
+          
+          // Security: Only allow authenticated users to access room messages
+          if (!authenticatedUserId) {
+            throw new Error('Unauthorized: You must be authenticated');
+          }
+          
+          // TODO: Add room membership validation to ensure user is in the room
           const msgs: Message[] = await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, roomId);
           const patches = msgs.map(addRoomMessagePatch)
           return { success: true, patches };
@@ -432,11 +454,21 @@ export async function executeToolByName(
 
         case 'get_room_messages_latest_by_name_by_index_range': {
           const { roomName, startIndex, endIndex } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (startIndex === undefined || endIndex === undefined || !roomName) {
             throw new Error('startIndex, endIndex and roomName are required');
           }
+          
+          // Security: Only allow authenticated users to access room messages
+          if (!authenticatedUserId) {
+            throw new Error('Unauthorized: You must be authenticated');
+          }
+          
           const room = await (provider as any).chatService.getRoomByName(roomName);
           if (!room) throw new Error('Room not found');
+          
+          // TODO: Add room membership validation to ensure user is in the room
           const msgs: Message[] = await (provider as any).chatService.getRoomMessagesByIndexRangeLatest(startIndex, endIndex, room.id);
           const patches = msgs.map(addRoomMessagePatch)
           return { success: true, patches };
