@@ -585,10 +585,12 @@ export class ClackClient extends EventEmitter {
   }
 
   async getMessagesBetweenUsersPage(userA: number, userB: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
-    const result = await this.makeMCPRequest('get_messages_by_index_range', {
+    // Use the specific MCP tool for messages between two users
+    const result = await this.makeMCPRequest('get_messages_between_users_by_index_range', {
       startIndex,
       endIndex: startIndex + batchSize,
-      userId: userA // Use the authenticated user's ID
+      userA,
+      userB
     })
     
     // Unwrap MCP response format
@@ -600,13 +602,7 @@ export class ClackClient extends EventEmitter {
       return []
     }
     
-    // Filter messages to only include those between userA and userB
-    const filteredMessages = unwrappedResult.messages.filter((msg: Message) => 
-      (msg.user_a === userA && msg.user_b === userB) ||
-      (msg.user_b === userA && msg.user_a === userB)
-    )
-    
-    return filteredMessages
+    return unwrappedResult.messages
   }
 
   // Human-friendly MCP helpers using usernames and room names

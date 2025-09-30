@@ -117,6 +117,20 @@ export function createChatTools(db: Database): MCPTool[] {
       }
     },
     {
+      name: 'get_messages_between_users_by_index_range',
+      description: 'Get messages between two specific users by index range (for pagination)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          startIndex: { type: 'number', description: 'Start index (0-based)' },
+          endIndex: { type: 'number', description: 'End index (exclusive)' },
+          userA: { type: 'number', description: 'First user ID' },
+          userB: { type: 'number', description: 'Second user ID' }
+        },
+        required: ['startIndex', 'endIndex', 'userA', 'userB']
+      }
+    },
+    {
       name: 'get_user_rooms',
       description: 'Get rooms that a user is a member of',
       inputSchema: {
@@ -330,6 +344,22 @@ export async function executeToolByName(
           }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
+        }
+
+        case 'get_messages_between_users_by_index_range': {
+          const { startIndex, endIndex, userA, userB } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
+          if (startIndex === undefined || endIndex === undefined || !userA || !userB) {
+            throw new Error('startIndex, endIndex, userA and userB are required');
+          }
+          
+          // Security: Only allow users to access messages they're part of
+          if (!authenticatedUserId || (authenticatedUserId !== userA && authenticatedUserId !== userB)) {
+            throw new Error('Unauthorized: You can only access messages you are part of');
+          }
+          
+          return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userA, userB);
         }
 
         case 'get_user_messages_latest_by_id_by_index_range': {
