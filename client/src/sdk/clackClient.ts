@@ -402,6 +402,8 @@ export class ClackClient extends EventEmitter {
 
   // Get all methods that use index range getters under the hood
   async getAllUsers(): Promise<User[]> {
+    console.log('🔍 ClackClient: Getting all users...')
+    console.log('📦 Client version: 0.6.28 (with server-side filtering)')
     const allUsers: User[] = []
     const batchSize = 100
     let startIndex = 0
@@ -585,6 +587,13 @@ export class ClackClient extends EventEmitter {
   }
 
   async getMessagesBetweenUsersPage(authenticatedUserId: number, otherUserId: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
+    console.log('🔍 getMessagesBetweenUsersPage Debug:')
+    console.log('- Authenticated user:', authenticatedUserId)
+    console.log('- Other user:', otherUserId)
+    console.log('- Start index:', startIndex)
+    console.log('- Batch size:', batchSize)
+    console.log('- Using server-side filtering with otherUserId parameter')
+    
     // Use the existing tool with otherUserId parameter for server-side filtering
     const result = await this.makeMCPRequest('get_messages_by_index_range', {
       startIndex,
@@ -593,14 +602,22 @@ export class ClackClient extends EventEmitter {
       otherUserId
     })
     
+    console.log('📡 MCP Request result:', result)
+    
     // Unwrap MCP response format
     const unwrappedResult = result.content && result.content[0] && result.content[0].text 
       ? JSON.parse(result.content[0].text) 
       : result
     
+    console.log('📦 Unwrapped result:', unwrappedResult)
+    
     if (!unwrappedResult.success || !unwrappedResult.messages) {
+      console.log('❌ No messages returned')
       return []
     }
+    
+    console.log('✅ Server returned', unwrappedResult.messages.length, 'messages')
+    console.log('📝 Sample message:', unwrappedResult.messages[0])
     
     // No client-side filtering needed - server returns exactly what we want
     return unwrappedResult.messages
