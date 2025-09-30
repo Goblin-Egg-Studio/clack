@@ -329,8 +329,15 @@ export async function executeToolByName(
 
         case 'get_messages_by_time_range': {
           const { startTime, endTime, userId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (!startTime || !endTime || !userId) {
             throw new Error('startTime, endTime and userId are required');
+          }
+          
+          // Security: Only allow users to access their own messages
+          if (!authenticatedUserId || authenticatedUserId !== userId) {
+            throw new Error('Unauthorized: You can only access your own messages');
           }
           
           return await provider.getMessagesByTimeRange(startTime, endTime, userId);
@@ -366,8 +373,15 @@ export async function executeToolByName(
 
         case 'get_messages_by_index_range': {
           const { startIndex, endIndex, userId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (startIndex === undefined || endIndex === undefined || !userId) {
             throw new Error('startIndex, endIndex and userId are required');
+          }
+          
+          // Security: Only allow users to access their own messages
+          if (!authenticatedUserId || authenticatedUserId !== userId) {
+            throw new Error('Unauthorized: You can only access your own messages');
           }
           
           return await provider.getMessagesByIndexRange(startIndex, endIndex, userId);
@@ -375,8 +389,15 @@ export async function executeToolByName(
 
         case 'get_messages_between_users_by_index_range': {
           const { startIndex, endIndex, userA, userB } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (startIndex === undefined || endIndex === undefined || !userA || !userB) {
             throw new Error('startIndex, endIndex, userA and userB are required');
+          }
+          
+          // Security: Only allow users to access messages in conversations they're part of
+          if (!authenticatedUserId || (authenticatedUserId !== userA && authenticatedUserId !== userB)) {
+            throw new Error('Unauthorized: You can only access messages in conversations you participate in');
           }
           
           return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, userA, userB);
@@ -393,8 +414,15 @@ export async function executeToolByName(
 
         case 'get_user_rooms': {
           const { userId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (!userId) {
             throw new Error('userId is required');
+          }
+          
+          // Security: Only allow users to access their own rooms
+          if (!authenticatedUserId || authenticatedUserId !== userId) {
+            throw new Error('Unauthorized: You can only access your own rooms');
           }
           
           return await provider.getUserRooms(userId);
@@ -402,8 +430,15 @@ export async function executeToolByName(
 
         case 'change_room_owner': {
           const { roomId, newOwnerId, currentOwnerId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (!roomId || !newOwnerId || !currentOwnerId) {
             throw new Error('roomId, newOwnerId, and currentOwnerId are required');
+          }
+          
+          // Security: Only allow the current owner to change ownership
+          if (!authenticatedUserId || authenticatedUserId !== currentOwnerId) {
+            throw new Error('Unauthorized: Only the current room owner can transfer ownership');
           }
           
           return await provider.changeRoomOwner(roomId, newOwnerId, currentOwnerId);
@@ -411,8 +446,15 @@ export async function executeToolByName(
 
         case 'delete_room': {
           const { roomId, ownerId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
           if (!roomId || !ownerId) {
             throw new Error('roomId and ownerId are required');
+          }
+          
+          // Security: Only allow the room owner to delete the room
+          if (!authenticatedUserId || authenticatedUserId !== ownerId) {
+            throw new Error('Unauthorized: Only the room owner can delete the room');
           }
           
           return await provider.deleteRoom(roomId, ownerId);
