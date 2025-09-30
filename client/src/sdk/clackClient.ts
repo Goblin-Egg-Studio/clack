@@ -408,7 +408,7 @@ export class ClackClient extends EventEmitter {
     
     while (true) {
       const endIndex = startIndex + batchSize
-      const result = await this.makeMCPRequest('get_users_by_index_range', {
+      const result = await this.makeMCPRequest('get_users_by_index', {
         startIndex,
         endIndex
       })
@@ -419,18 +419,20 @@ export class ClackClient extends EventEmitter {
         : result
 
       if (unwrappedResult.patches) {
-        // Apply and continue; stop early only when server indicates no more
+        // Convert patches back to users array for compatibility
+        const users = unwrappedResult.patches.map((patch: any) => ({
+          id: parseInt(patch.path.split('/')[2]),
+          username: patch.value.name,
+          created_at: new Date().toISOString()
+        }))
+        allUsers.push(...users)
       }
       
-      if (!unwrappedResult.success || (unwrappedResult.users && unwrappedResult.users.length === 0)) {
+      if (!unwrappedResult.success || unwrappedResult.patches.length === 0) {
         break
       }
       
-      if (unwrappedResult.users) {
-        allUsers.push(...unwrappedResult.users)
-      }
-      
-      if (unwrappedResult.users.length < batchSize) {
+      if (unwrappedResult.patches.length < batchSize) {
         break
       }
       
@@ -449,12 +451,12 @@ export class ClackClient extends EventEmitter {
     while (true) {
       const endIndex = startIndex + batchSize
       console.log(`ClackClient: Fetching rooms ${startIndex} to ${endIndex}`)
-      const result = await this.makeMCPRequest('get_rooms_by_index_range', {
+      const result = await this.makeMCPRequest('get_rooms_by_index', {
         startIndex,
         endIndex
       })
       
-      console.log('ClackClient: get_rooms_by_index_range result:', result)
+      console.log('ClackClient: get_rooms_by_index result:', result)
       
       // Unwrap MCP response format
       const unwrappedResult = result.content && result.content[0] && result.content[0].text 
@@ -463,15 +465,27 @@ export class ClackClient extends EventEmitter {
       
       console.log('ClackClient: Unwrapped result:', unwrappedResult)
       
-      if (!unwrappedResult.success || !unwrappedResult.rooms || unwrappedResult.rooms.length === 0) {
+      if (unwrappedResult.patches) {
+        // Convert patches back to rooms array for compatibility
+        const rooms = unwrappedResult.patches.map((patch: any) => ({
+          id: parseInt(patch.path.split('/')[2]),
+          name: patch.value.name,
+          description: '',
+          created_by: patch.value.ownerId,
+          created_at: new Date().toISOString(),
+          created_by_username: 'Unknown',
+          member_count: 0
+        }))
+        allRooms.push(...rooms)
+        console.log(`ClackClient: Added ${rooms.length} rooms, total: ${allRooms.length}`)
+      }
+      
+      if (!unwrappedResult.success || unwrappedResult.patches.length === 0) {
         console.log('ClackClient: No more rooms, breaking')
         break
       }
       
-      allRooms.push(...unwrappedResult.rooms)
-      console.log(`ClackClient: Added ${unwrappedResult.rooms.length} rooms, total: ${allRooms.length}`)
-      
-      if (unwrappedResult.rooms.length < batchSize) {
+      if (unwrappedResult.patches.length < batchSize) {
         console.log('ClackClient: Less than batch size, breaking')
         break
       }
