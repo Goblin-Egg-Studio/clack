@@ -1,5 +1,5 @@
 import { getToolsList, executeToolByName, buildRegistry } from './mcpToolRegistry.js';
-import { validateToolArguments } from '../validation/mcpToolValidation.js';
+import { validateMCPToolArguments } from '../../../shared/validation/mcpToolValidation.js';
 import { ProviderRegistry } from './providerRegistry.js';
 import {
     JSONRPC_VERSION,
@@ -110,8 +110,12 @@ export class MCPServerCore {
             return `Unknown tool: ${toolName}`;
         }
 
-        // Use shared validation library
-        return validateToolArguments(tool.inputSchema, toolArgs);
+        const validation = validateMCPToolArguments(toolName, toolArgs);
+        if (!validation.isValid) {
+            const errorMessage = validation.errors.map(e => `${e.field}: ${e.message}`).join(', ');
+            return errorMessage;
+        }
+        return null;
     }
 
     /**
