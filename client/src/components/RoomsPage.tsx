@@ -223,7 +223,7 @@ export function RoomsPage() {
                             {userInRoom ? (
                               <div className="flex space-x-2">
                                 <button
-                                  onClick={() => navigate(`/room/${room.id}`)}
+                                  onClick={() => navigate(`/room/${room.name}`)}
                                   className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-md transition-colors"
                                 >
                                   Enter

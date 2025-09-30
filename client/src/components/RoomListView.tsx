@@ -127,7 +127,7 @@ export function RoomListView() {
                   <div className="flex space-x-2">
                     {isUserInRoom(room.id) ? (
                       <button
-                        onClick={() => navigate(`/room/${room.id}`)}
+                        onClick={() => navigate(`/room/${room.name}`)}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
                       >
                         Enter Room

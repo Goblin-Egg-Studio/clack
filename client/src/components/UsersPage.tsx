@@ -14,8 +14,8 @@ export function UsersPage() {
   const [isRegistering, setIsRegistering] = useState(false)
   const [registrationError, setRegistrationError] = useState('')
 
-  const handleStartChat = (userId: number) => {
-    navigate(`/chat/${userId}`)
+  const handleStartChat = (user: any) => {
+    navigate(`/chat/${user.username}`)
   }
 
   const handleRegistrationSubmit = async (e: React.FormEvent) => {
@@ -183,7 +183,7 @@ export function UsersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => handleStartChat(user.id)}
+                          onClick={() => handleStartChat(user)}
                           className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-md transition-colors"
                         >
                           Start Chat
