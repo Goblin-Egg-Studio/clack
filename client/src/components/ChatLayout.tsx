@@ -15,7 +15,11 @@ export function ChatLayout() {
       if (success) {
         // The room list will update automatically via SSE
         console.log('Successfully joined room')
-        navigate(`/room/${roomId}`)
+        // Find room by ID to get the name for navigation
+        const room = rooms.find(r => r.id === roomId)
+        if (room) {
+          navigate(`/room/${room.name}`)
+        }
       } else {
         alert('Failed to join room')
       }
@@ -73,9 +77,9 @@ export function ChatLayout() {
                     {users.filter(user => user && user.id && user.id !== currentUser?.id).map((user) => (
                       <Link
                         key={user.id}
-                        to={`/chat/${user.id}`}
+                        to={`/chat/${user.username}`}
                         className={`block w-full px-3 py-2 rounded-lg text-sm transition-colors ${
-                          location.pathname === `/chat/${user.id}`
+                          location.pathname === `/chat/${user.username}`
                             ? 'bg-blue-100 text-blue-700'
                             : 'text-gray-700 hover:bg-gray-100'
                         }`}
@@ -127,9 +131,9 @@ export function ChatLayout() {
                           {room && room.id ? (isUserInRoom(room.id) ? '🟢' : '🔵') : '🔵'}
                         </span>
                         <Link
-                          to={`/room/${room.id}`}
+                          to={`/room/${room.name}`}
                           className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                            location.pathname === `/room/${room.id}`
+                            location.pathname === `/room/${room.name}`
                               ? 'bg-blue-100 text-blue-700'
                               : 'text-gray-700 hover:bg-gray-100'
                           }`}

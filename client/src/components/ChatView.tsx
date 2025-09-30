@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useClackContext } from '../contexts/ClackContext'
 
 export function ChatView() {
-  const { userId } = useParams<{ userId: string }>()
+  const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
   const [newMessage, setNewMessage] = useState('')
   const messageInputRef = useRef<HTMLInputElement>(null)
@@ -21,25 +21,21 @@ export function ChatView() {
     sendMessage,
     selectChat,
     startChat,
+    startChatByUsername,
     loadMoreMessages
   } = useClackContext()
 
-  // Load chat when userId changes
+  // Load chat when username changes
   useEffect(() => {
-    if (userId && users.length > 0) {
-      const otherUserId = parseInt(userId)
-      if (!isNaN(otherUserId)) {
-        // Find the user in the list
-        const user = users.find(u => u.id === otherUserId)
-        if (user) {
-          selectChat(user)
-        } else {
-          // Try to start a new chat
-          startChat(otherUserId)
-        }
-      }
+    if (username && users.length > 0) {
+      // Use the human-friendly helper to start chat by username
+      startChatByUsername(username).catch(error => {
+        console.error('Failed to start chat with username:', username, error)
+        // If user doesn't exist, navigate back to users page
+        navigate('/users')
+      })
     }
-  }, [userId, selectChat, startChat, users])
+  }, [username, startChatByUsername, users, navigate])
 
   // Handle scroll to load more messages
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -84,7 +80,7 @@ export function ChatView() {
   }
 
   // If no chat user is selected, show the user list
-  if (!userId) {
+  if (!username) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">

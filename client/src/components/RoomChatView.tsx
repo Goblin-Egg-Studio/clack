@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useClackContext } from '../contexts/ClackContext'
 
 export function RoomChatView() {
-  const { roomId } = useParams<{ roomId?: string }>()
+  const { roomName } = useParams<{ roomName?: string }>()
   const navigate = useNavigate()
   const [newMessage, setNewMessage] = useState('')
   const messageInputRef = useRef<HTMLInputElement>(null)
@@ -22,26 +22,23 @@ export function RoomChatView() {
     sendRoomMessage,
     selectRoom,
     joinRoom,
+    selectRoomByName,
     loadMoreRoomMessages
   } = useClackContext()
 
-  // Load room when roomId changes
+  // Load room when roomName changes
   useEffect(() => {
-    if (roomId) {
-      const id = parseInt(roomId)
-      if (!isNaN(id)) {
-        const room = rooms.find(r => r.id === id)
-        if (room) {
-          selectRoom(room)
-        } else {
-          // If room not found, navigate back to rooms page
-          navigate('/rooms')
-        }
-      }
+    if (roomName) {
+      // Use the human-friendly helper to select room by name
+      selectRoomByName(roomName).catch(error => {
+        console.error('Failed to select room by name:', roomName, error)
+        // If room doesn't exist, navigate back to rooms page
+        navigate('/rooms')
+      })
     } else {
-      selectRoom(null as any) // Clear room if no roomId in URL
+      selectRoom(null as any) // Clear room if no roomName in URL
     }
-  }, [roomId, selectRoom, rooms, navigate])
+  }, [roomName, selectRoomByName, navigate])
 
   // Handle scroll to load more messages
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -78,7 +75,7 @@ export function RoomChatView() {
       const isUserInRoom = currentRoom && userRooms.some(room => room.id === currentRoom.id)
 
       // If no room is selected, show a prompt
-      if (!roomId || !currentRoom) {
+      if (!roomName || !currentRoom) {
         return (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">

@@ -144,8 +144,8 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<ChatLayout />}>
                 <Route index element={<div className="flex-1 flex items-center justify-center"><div className="text-center"><h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Clack Chat</h2><p className="text-gray-600">Select a user or room from the sidebar to start chatting</p></div></div>} />
-                <Route path="chat/:userId" element={<ChatView />} />
-                <Route path="room/:roomId" element={<RoomChatView />} />
+                <Route path="chat/:username" element={<ChatView />} />
+                <Route path="room/:roomName" element={<RoomChatView />} />
                 <Route path="rooms" element={<RoomsPage />} />
                 <Route path="users" element={<UsersPage />} />
                 <Route path="settings" element={<SettingsPage />} />
