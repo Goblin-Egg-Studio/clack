@@ -91,6 +91,7 @@ sudo nginx -t && sudo systemctl restart nginx
 
 # Database file (persistent location outside git repo)
 sudo mkdir -p /opt/clack/data
+sudo chown clack:clack /opt/clack/data
 if [ ! -f /opt/clack/data/chat.db ]; then
   log "Creating persistent database..."
   sudo -u clack touch /opt/clack/data/chat.db

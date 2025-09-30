@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.18 - Revert shared validation and fix setup permissions
+- **Fix**: Remove shared MCP validation imports to stop runtime crashes on deploy box
+- **Ops**: Update Linode setup script to chown `/opt/clack/data` so database file creation succeeds
+- **Version**: Bump to 0.6.18 (monorepo)
+
 ## 0.6.17 - Add detailed headers debugging for MCP tool registry
 - **Debug**: Add JSON.stringify logging to see exact headers being passed to MCP tools
 - **Debug**: Log individual header properties (userId, username) in MCP tool registry
