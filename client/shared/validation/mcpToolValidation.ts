@@ -139,6 +139,24 @@ const MCP_TOOL_SCHEMAS: Record<string, any> = {
       ownerId: { type: 'number', description: 'Owner user ID' }
     },
     required: ['roomId', 'ownerId']
+  },
+  'get_messages_with_user': {
+    type: 'object',
+    properties: {
+      otherUserId: { type: 'number', description: 'Other user ID' },
+      startIndex: { type: 'number', description: 'Start index (0-based)' },
+      endIndex: { type: 'number', description: 'End index (exclusive)' }
+    },
+    required: ['otherUserId', 'startIndex', 'endIndex']
+  },
+  'get_user_messages_latest_by_id_by_index_range': {
+    type: 'object',
+    properties: {
+      otherUserId: { type: 'number', description: 'Other user ID' },
+      startIndex: { type: 'number', description: 'Start index (0-based)' },
+      endIndex: { type: 'number', description: 'End index (exclusive)' }
+    },
+    required: ['otherUserId', 'startIndex', 'endIndex']
   }
 };
 
