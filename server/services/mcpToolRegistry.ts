@@ -99,6 +99,7 @@ export function createChatTools(db: Database): MCPTool[] {
     // keep old names for compatibility (temporarily)
     { name: 'get_users_by_index_range', description: 'Deprecated: use get_users_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
     { name: 'get_rooms_by_index_range', description: 'Deprecated: use get_rooms_by_index', inputSchema: { type: 'object', properties: { startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['startIndex', 'endIndex'] } },
+    { name: 'get_user_messages_latest', description: 'Get latest messages with specific user', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, limit: { type: 'number', description: 'Number of messages to return (default: 50)' } }, required: ['otherUserId'] } },
     { name: 'get_user_messages_latest_by_id_by_index_range', description: 'DMs with otherUserId latest-first by range', inputSchema: { type: 'object', properties: { otherUserId: { type: 'number' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['otherUserId', 'startIndex', 'endIndex'] } },
     { name: 'get_user_messages_latest_by_username_by_index_range', description: 'DMs with otherUsername latest-first by range', inputSchema: { type: 'object', properties: { otherUsername: { type: 'string' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['otherUsername', 'startIndex', 'endIndex'] } },
     { name: 'get_room_messages_latest_by_id_by_index_range', description: 'Room messages latest-first by range', inputSchema: { type: 'object', properties: { roomId: { type: 'number' }, startIndex: { type: 'number' }, endIndex: { type: 'number' } }, required: ['roomId', 'startIndex', 'endIndex'] } },
@@ -367,6 +368,22 @@ export async function executeToolByName(
           return await provider.getMessagesBetweenUsersByIndexRange(startIndex, endIndex, authenticatedUserId, otherUserId);
         }
 
+
+        case 'get_user_messages_latest': {
+          const { otherUserId, limit = 50 } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
+          if (!otherUserId) {
+            throw new Error('otherUserId is required');
+          }
+          
+          // Security: Only allow users to access conversations they're part of
+          if (!authenticatedUserId) {
+            throw new Error('Unauthorized: You must be authenticated');
+          }
+          
+          return await provider.getMessagesBetweenUsersByIndexRange(0, limit, authenticatedUserId, otherUserId);
+        }
 
         case 'get_user_messages_latest_by_id_by_index_range': {
           const { otherUserId, startIndex, endIndex } = toolArgs;

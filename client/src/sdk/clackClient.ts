@@ -592,13 +592,12 @@ export class ClackClient extends EventEmitter {
     console.log('- Other user:', otherUserId)
     console.log('- Start index:', startIndex)
     console.log('- Batch size:', batchSize)
-    console.log('- Using get_user_messages_latest_by_id_by_index_range tool')
+    console.log('- Using simple get_user_messages_latest tool')
     
-    // Use the proper "latest by index" tool for server-side filtering
-    const result = await this.makeMCPRequest('get_user_messages_latest_by_id_by_index_range', {
+    // Use the simple "get latest" tool - much cleaner!
+    const result = await this.makeMCPRequest('get_user_messages_latest', {
       otherUserId,
-      startIndex,
-      endIndex: startIndex + batchSize
+      limit: batchSize
     })
     
     console.log('📡 MCP Request result:', result)
