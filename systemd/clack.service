@@ -9,7 +9,7 @@ Group=clack
 WorkingDirectory=/opt/clack
 # Only update code if there are changes (preserve database)
 ExecStartPre=/bin/bash -lc 'cd /opt/clack && git fetch origin && if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then git reset --hard origin/main && export PATH="/home/clack/.bun/bin:$PATH" && bun install --no-progress --frozen-lockfile && bun run build; fi'
-ExecStart=/home/clack/.bun/bin/bun server.ts
+ExecStart=/home/clack/.bun/bin/bun run server.ts
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production

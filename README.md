@@ -63,17 +63,21 @@ make deploy-check
 
 ## 📦 Production Deployment
 
-### Automated Deployment
+### Automated Deployment (Canonical Path: /opt/clack)
 
 This project uses GitHub Actions for automatic deployment to Linode. Do these two steps:
 
-1) Setup Clack on Linode
+1) Setup Clack on Linode (installs to /opt/clack and runs as user `clack`)
 ```bash
 # On your Linode instance
 git clone https://github.com/Goblin-Egg-Studio/clack.git
 cd clack
 chmod +x scripts/setup-linode.sh
 ./scripts/setup-linode.sh
+
+# Service will run from /opt/clack as user `clack`
+# To view logs:
+sudo journalctl -u clack.service -f --no-pager
 ```
 
 If you don't care about automatically deploying updates when the main branch in your repository, then you're done! Otherwise, continue below.
@@ -153,7 +157,7 @@ sudo certbot --nginx -d your-domain.com
 ### Production Configuration
 
 The application includes production-ready configurations:
-- **Systemd service** for process management
+- **Systemd service** for process management (WorkingDirectory=/opt/clack, User=clack)
 - **Nginx reverse proxy** with SSL support
 - **Security headers** and rate limiting
 - **Automatic restarts** and health monitoring

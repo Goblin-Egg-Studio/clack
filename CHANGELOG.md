@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.20 - Align systemd + setup to /opt/clack and clack user
+- **Ops**: Ensure systemd unit runs with WorkingDirectory=/opt/clack, User=clack, ExecStart uses `bun run`
+- **Docs**: README clarifies canonical deployment path (/opt/clack) and log commands
+- **Setup**: setup-linode.sh remains the source of truth for installing under /opt/clack
+- **Version**: Bump to 0.6.20 (monorepo)
+
 ## 0.6.19 - Remove senderId requirement from chat messages
 - **Feature**: Remove senderId parameter requirement from send_message and send_room_message MCP tools
 - **Feature**: Server now uses authenticated user ID from headers instead of requiring client to send senderId
