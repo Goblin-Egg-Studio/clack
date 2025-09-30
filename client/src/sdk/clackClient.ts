@@ -408,7 +408,7 @@ export class ClackClient extends EventEmitter {
     
     while (true) {
       const endIndex = startIndex + batchSize
-      const result = await this.makeMCPRequest('get_users_by_index', {
+      const result = await this.makeMCPRequest('get_users_by_index_range', {
         startIndex,
         endIndex
       })
@@ -426,13 +426,17 @@ export class ClackClient extends EventEmitter {
           created_at: new Date().toISOString()
         }))
         allUsers.push(...users)
+      } else if (unwrappedResult.users) {
+        // Handle old format for backward compatibility
+        allUsers.push(...unwrappedResult.users)
       }
       
-      if (!unwrappedResult.success || unwrappedResult.patches.length === 0) {
+      if (!unwrappedResult.success || (unwrappedResult.users && unwrappedResult.users.length === 0) || (unwrappedResult.patches && unwrappedResult.patches.length === 0)) {
         break
       }
       
-      if (unwrappedResult.patches.length < batchSize) {
+      const userCount = unwrappedResult.users ? unwrappedResult.users.length : (unwrappedResult.patches ? unwrappedResult.patches.length : 0)
+      if (userCount < batchSize) {
         break
       }
       
@@ -451,12 +455,12 @@ export class ClackClient extends EventEmitter {
     while (true) {
       const endIndex = startIndex + batchSize
       console.log(`ClackClient: Fetching rooms ${startIndex} to ${endIndex}`)
-      const result = await this.makeMCPRequest('get_rooms_by_index', {
+      const result = await this.makeMCPRequest('get_rooms_by_index_range', {
         startIndex,
         endIndex
       })
       
-      console.log('ClackClient: get_rooms_by_index result:', result)
+      console.log('ClackClient: get_rooms_by_index_range result:', result)
       
       // Unwrap MCP response format
       const unwrappedResult = result.content && result.content[0] && result.content[0].text 
@@ -478,14 +482,19 @@ export class ClackClient extends EventEmitter {
         }))
         allRooms.push(...rooms)
         console.log(`ClackClient: Added ${rooms.length} rooms, total: ${allRooms.length}`)
+      } else if (unwrappedResult.rooms) {
+        // Handle old format for backward compatibility
+        allRooms.push(...unwrappedResult.rooms)
+        console.log(`ClackClient: Added ${unwrappedResult.rooms.length} rooms, total: ${allRooms.length}`)
       }
       
-      if (!unwrappedResult.success || unwrappedResult.patches.length === 0) {
+      if (!unwrappedResult.success || (unwrappedResult.rooms && unwrappedResult.rooms.length === 0) || (unwrappedResult.patches && unwrappedResult.patches.length === 0)) {
         console.log('ClackClient: No more rooms, breaking')
         break
       }
       
-      if (unwrappedResult.patches.length < batchSize) {
+      const roomCount = unwrappedResult.rooms ? unwrappedResult.rooms.length : (unwrappedResult.patches ? unwrappedResult.patches.length : 0)
+      if (roomCount < batchSize) {
         console.log('ClackClient: Less than batch size, breaking')
         break
       }
