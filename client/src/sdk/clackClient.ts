@@ -585,29 +585,61 @@ export class ClackClient extends EventEmitter {
   }
 
   async getMessagesBetweenUsersPage(authenticatedUserId: number, otherUserId: number, startIndex: number, batchSize: number = 50): Promise<Message[]> {
-    // Temporarily fall back to the working approach until server tool is available
-    const result = await this.makeMCPRequest('get_messages_by_index_range', {
-      startIndex,
-      endIndex: startIndex + batchSize,
-      userId: authenticatedUserId
-    })
-    
-    // Unwrap MCP response format
-    const unwrappedResult = result.content && result.content[0] && result.content[0].text 
-      ? JSON.parse(result.content[0].text) 
-      : result
-    
-    if (!unwrappedResult.success || !unwrappedResult.messages) {
-      return []
+    // First test if the debug tool works
+    try {
+      const debugResult = await this.makeMCPRequest('debug_test_tool', {})
+      console.log('Debug tool result:', debugResult)
+    } catch (error) {
+      console.log('Debug tool failed:', error)
     }
-    
-    // Client-side filtering as temporary workaround
-    const filteredMessages = unwrappedResult.messages.filter((msg: Message) => 
-      (msg.user_a === authenticatedUserId && msg.user_b === otherUserId) ||
-      (msg.user_b === authenticatedUserId && msg.user_a === otherUserId)
-    )
-    
-    return filteredMessages
+
+    // Try the proper server-side tool
+    try {
+      const result = await this.makeMCPRequest('get_messages_between_users_by_index_range', {
+        startIndex,
+        endIndex: startIndex + batchSize,
+        userA: authenticatedUserId,
+        userB: otherUserId
+      })
+      
+      // Unwrap MCP response format
+      const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+        ? JSON.parse(result.content[0].text) 
+        : result
+      
+      if (!unwrappedResult.success || !unwrappedResult.messages) {
+        return []
+      }
+      
+      // No client-side filtering needed - server returns exactly what we want
+      return unwrappedResult.messages
+    } catch (error) {
+      console.log('Server-side tool failed, falling back to client-side filtering:', error)
+      
+      // Fallback to client-side filtering
+      const result = await this.makeMCPRequest('get_messages_by_index_range', {
+        startIndex,
+        endIndex: startIndex + batchSize,
+        userId: authenticatedUserId
+      })
+      
+      // Unwrap MCP response format
+      const unwrappedResult = result.content && result.content[0] && result.content[0].text 
+        ? JSON.parse(result.content[0].text) 
+        : result
+      
+      if (!unwrappedResult.success || !unwrappedResult.messages) {
+        return []
+      }
+      
+      // Client-side filtering as fallback
+      const filteredMessages = unwrappedResult.messages.filter((msg: Message) => 
+        (msg.user_a === authenticatedUserId && msg.user_b === otherUserId) ||
+        (msg.user_b === authenticatedUserId && msg.user_a === otherUserId)
+      )
+      
+      return filteredMessages
+    }
   }
 
   // Human-friendly MCP helpers using usernames and room names
