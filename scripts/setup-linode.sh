@@ -42,7 +42,7 @@ mkdir -p "$APP_DIR"
 
 # Clone or update repo
 if [ -d "$APP_DIR/.git" ]; then
-  log "Updating repository"; cd "$APP_DIR" && git fetch origin && git reset --hard origin/main
+  log "Updating repository"; cd "$APP_DIR" && git fetch origin && git pull origin main && git reset --hard origin/main
 else
   log "Cloning repository"; git clone https://github.com/Goblin-Egg-Studio/clack.git "$APP_DIR"
 fi
