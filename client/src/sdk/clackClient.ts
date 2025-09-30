@@ -309,19 +309,54 @@ export class ClackClient extends EventEmitter {
       headers['X-Password'] = this.password
     }
 
+    console.log('MCP Request →', {
+      method,
+      params,
+      headers: Object.keys(headers)
+    })
+
     const response = await fetch(`${this.baseUrl}/api/mcp`, {
       method: 'POST',
       headers,
       body: JSON.stringify(request)
     })
 
+    const responseClone = response.clone()
+
     if (!response.ok) {
+      const errorBody = await responseClone.text()
+      console.error('MCP Request failed ←', {
+        method,
+        status: response.status,
+        statusText: response.statusText,
+        body: errorBody
+      })
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
-    const jsonResponse = await response.json()
+    console.log('MCP Request success ←', {
+      method,
+      status: response.status,
+      statusText: response.statusText
+    })
+
+    let jsonResponse
+    try {
+      jsonResponse = await response.json()
+    } catch (error) {
+      const errorBody = await responseClone.text()
+      console.error('MCP Response JSON parse error ←', {
+        method,
+        status: response.status,
+        statusText: response.statusText,
+        body: errorBody,
+        error
+      })
+      throw error
+    }
+
     if (jsonResponse.error) {
-      throw new Error(jsonResponse.error.message)
+      throw new Error(jsonResponse.error.message || 'Unknown MCP error')
     }
 
     return jsonResponse.result
