@@ -118,21 +118,6 @@ export function RoomChatView() {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Room Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {currentRoom.name}
-            </h2>
-            <p className="text-sm text-gray-600">
-              {currentRoom.member_count} member{currentRoom.member_count !== 1 ? 's' : ''} • 
-              Created by {currentRoom.created_by_username}
-            </p>
-          </div>
-        </div>
-      </div>
-      
       {/* Message Input */}
       {isUserInRoom && (
         <div className="bg-white border-b border-gray-200 p-6">

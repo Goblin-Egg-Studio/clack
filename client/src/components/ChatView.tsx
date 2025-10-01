@@ -105,13 +105,6 @@ export function ChatView() {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Chat Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Chat with {currentChatUser.username}
-        </h2>
-      </div>
-      
       {/* Message Input */}
       <div className="bg-white border-b border-gray-200 p-6">
         <form onSubmit={handleSendMessage} className="flex space-x-4">
