@@ -101,9 +101,9 @@ function AppContent() {
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50">
         {/* Connection Status and Logout */}
-        <div className="fixed top-4 right-4 flex items-center space-x-3 z-50">
+        <div className="fixed top-4 right-4 flex items-center space-x-4 z-50">
           <VersionBadge />
-          <div className={`px-3 py-1 rounded-full text-sm ${
+          <div className={`px-4 py-2 rounded-full text-sm font-medium ${
             isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
           }`}>
             {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
@@ -113,7 +113,7 @@ function AppContent() {
               // Navigate to profile page
               window.location.href = '/profile'
             }}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition-colors"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors shadow-sm"
             title="Profile"
           >
             👤 Profile
@@ -123,7 +123,7 @@ function AppContent() {
               // Navigate to settings page
               window.location.href = '/settings'
             }}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition-colors"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors shadow-sm"
             title="Settings"
           >
             ⚙️ Settings
@@ -134,7 +134,7 @@ function AppContent() {
               setCurrentUser(null)
               setIsAuthenticated(false)
             }}
-            className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm transition-colors"
+            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm font-medium transition-colors shadow-sm"
             title="Logout"
           >
             🚪 Logout
