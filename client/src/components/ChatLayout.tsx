@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
 import { useClackContext } from '../contexts/ClackContext'
 import { ContextualRightSidebar } from './ContextualRightSidebar'
+import { VersionBadge } from './VersionBadge'
 
 export function ChatLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { currentUser, users, rooms, userRooms, joinRoom } = useClackContext()
+  const { currentUser, users, rooms, userRooms, joinRoom, isConnected } = useClackContext()
   const [isDirectMessagesOpen, setIsDirectMessagesOpen] = useState(false)
   const [isChatRoomsOpen, setIsChatRoomsOpen] = useState(false)
 
