@@ -210,7 +210,7 @@ export function useClack() {
             Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
           )
           if (!exists) {
-            const newMessages = [...prev, message]
+            const newMessages = [message, ...prev]
             console.log('📝 Adding new message to messages array:', {
               previousLength: prev.length,
               newLength: newMessages.length,
