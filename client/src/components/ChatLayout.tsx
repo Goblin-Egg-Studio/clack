@@ -38,13 +38,75 @@ export function ChatLayout() {
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Left Sidebar */}
-      <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-900">🚀 Clack Chat</h1>
-          <p className="text-sm text-gray-600">Welcome, {currentUser?.username}!</p>
+    <div className="flex flex-col h-screen">
+      {/* Full-width Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold text-gray-900">🚀 Clack Chat</h1>
+            <p className="text-sm text-gray-600">Welcome, {currentUser?.username}!</p>
+          </div>
+          
+          {/* Chat/Room Title */}
+          <div className="flex-1 text-center">
+            {location.pathname.startsWith('/chat/') && (
+              <h2 className="text-lg font-semibold text-gray-900">
+                Chat with {location.pathname.split('/chat/')[1]}
+              </h2>
+            )}
+            {location.pathname.startsWith('/room/') && (
+              <h2 className="text-lg font-semibold text-gray-900">
+                {location.pathname.split('/room/')[1]}
+              </h2>
+            )}
+          </div>
+          
+          {/* Header Buttons */}
+          <div className="flex items-center space-x-4">
+            <VersionBadge />
+            <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+              isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+            </div>
+            <button
+              onClick={() => {
+                window.location.href = '/profile'
+              }}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors shadow-sm"
+              title="Profile"
+            >
+              👤 Profile
+            </button>
+            <button
+              onClick={() => {
+                window.location.href = '/settings'
+              }}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors shadow-sm"
+              title="Settings"
+            >
+              ⚙️ Settings
+            </button>
+            <button
+              onClick={() => {
+                const { AuthService } = require('../services/authService')
+                const authService = new AuthService()
+                authService.logout()
+                window.location.reload()
+              }}
+              className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm font-medium transition-colors shadow-sm"
+              title="Logout"
+            >
+              🚪 Logout
+            </button>
+          </div>
         </div>
+      </div>
+      
+      {/* Main Layout */}
+      <div className="flex flex-1">
+        {/* Left Sidebar */}
+        <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
         
         {/* Users Section */}
         <div className="border-b border-gray-200">
@@ -153,36 +215,14 @@ export function ChatLayout() {
         </div>
       </div>
       
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Chat Header - spans full width above right sidebar */}
-        {location.pathname.startsWith('/chat/') && (
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Chat with {location.pathname.split('/chat/')[1]}
-            </h2>
-          </div>
-        )}
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          <Outlet />
+        </div>
         
-        {/* Room Header - spans full width above right sidebar */}
-        {location.pathname.startsWith('/room/') && (
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {location.pathname.split('/room/')[1]}
-                </h2>
-                <p className="text-sm text-gray-600">Room Chat</p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <Outlet />
+        {/* Contextual Right Sidebar */}
+        <ContextualRightSidebar />
       </div>
-      
-      {/* Contextual Right Sidebar */}
-      <ContextualRightSidebar />
     </div>
   )
 }

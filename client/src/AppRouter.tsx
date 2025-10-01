@@ -100,46 +100,6 @@ function AppContent() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50">
-        {/* Connection Status and Logout */}
-        <div className="fixed top-4 right-4 flex items-center space-x-4 z-50">
-          <VersionBadge />
-          <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-            isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
-            {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
-          </div>
-          <button
-            onClick={() => {
-              // Navigate to profile page
-              window.location.href = '/profile'
-            }}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors shadow-sm"
-            title="Profile"
-          >
-            👤 Profile
-          </button>
-          <button
-            onClick={() => {
-              // Navigate to settings page
-              window.location.href = '/settings'
-            }}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors shadow-sm"
-            title="Settings"
-          >
-            ⚙️ Settings
-          </button>
-          <button
-            onClick={() => {
-              authService.logout()
-              setCurrentUser(null)
-              setIsAuthenticated(false)
-            }}
-            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-full text-sm font-medium transition-colors shadow-sm"
-            title="Logout"
-          >
-            🚪 Logout
-          </button>
-        </div>
 
             <Routes>
               <Route path="/" element={<ChatLayout />}>
