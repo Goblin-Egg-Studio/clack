@@ -132,6 +132,16 @@ export function useClack() {
   // Set up event listeners
   useEffect(() => {
     const handleNewMessage = (message: Message) => {
+      console.log('🔔 handleNewMessage called:', {
+        messageId: message.id,
+        content: message.content.substring(0, 50) + '...',
+        senderId: message.sender_id,
+        userA: message.user_a,
+        userB: message.user_b,
+        currentUserId: currentUserRef.current?.id,
+        currentChatUserId: currentChatUserRef.current?.id
+      })
+
       // Mirror into dataTree for each participant
       setDataTree(prev => {
         const next: DataTree = { ...prev, users: { ...prev.users } }
@@ -571,6 +581,11 @@ export function useClack() {
           setIsConnected(false)
         })
         client.on('version:received', handleVersionReceived)
+        
+        // Add general SSE event logging
+        client.on('*', (eventName: string, data: any) => {
+          console.log('📡 SSE Event received:', { eventName, data })
+        })
 
         return () => {
           client.off('message:new', handleNewMessage)
