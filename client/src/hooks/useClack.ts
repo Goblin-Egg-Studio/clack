@@ -59,6 +59,7 @@ export function useClack() {
   // Pagination state
   const [messagePagination, setMessagePagination] = useState<Map<string, { startIndex: number, hasMore: boolean }>>(new Map()) // Track pagination for each chat/room
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [forceUpdate, setForceUpdate] = useState(0)
 
   // Refs to avoid stale closures
   const currentChatUserRef = useRef<User | null>(null)
@@ -219,6 +220,11 @@ export function useClack() {
                 sender_id: message.sender_id
               }
             })
+            
+            // Force a re-render by updating a timestamp
+            setForceUpdate(prev => prev + 1)
+            console.log('🔄 Force update triggered')
+            
             return newMessages
           }
           console.log('⚠️ Message already exists, skipping')
