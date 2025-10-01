@@ -136,6 +136,15 @@ export function ChatView() {
       
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4" onScroll={handleScroll}>
+        {console.log('🎨 ChatView rendering messages:', {
+          messagesLength: messages.length,
+          messages: messages.map(m => ({ 
+            id: m.id, 
+            content: m.content.substring(0, 20) + '...', 
+            sender_id: m.sender_id,
+            created_at: m.created_at
+          }))
+        })}
         {isLoadingMore && (
           <div className="text-center text-gray-500 py-4">
             <p>Loading more messages...</p>

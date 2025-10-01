@@ -191,7 +191,17 @@ export function useClack() {
            (message.user_b === currentUserRef.current.id && message.user_a === currentChatUserRef.current.id))
       
       if (isForCurrentChat) {
+        console.log('✅ Adding message to current view')
         setMessages(prev => {
+          console.log('📊 Current messages before adding:', {
+            length: prev.length,
+            lastMessage: prev[prev.length - 1] ? {
+              id: prev[prev.length - 1].id,
+              content: prev[prev.length - 1].content.substring(0, 20) + '...',
+              sender_id: prev[prev.length - 1].sender_id
+            } : 'none'
+          })
+          
           // Check for duplicates (optimistic updates)
           const exists = prev.some(msg => 
             msg.content === message.content && 
@@ -199,10 +209,23 @@ export function useClack() {
             Math.abs(new Date(msg.created_at).getTime() - new Date(message.created_at).getTime()) < 1000
           )
           if (!exists) {
-            return [...prev, message]
+            const newMessages = [...prev, message]
+            console.log('📝 Adding new message to messages array:', {
+              previousLength: prev.length,
+              newLength: newMessages.length,
+              addedMessage: {
+                id: message.id,
+                content: message.content.substring(0, 30) + '...',
+                sender_id: message.sender_id
+              }
+            })
+            return newMessages
           }
+          console.log('⚠️ Message already exists, skipping')
           return prev
         })
+      } else {
+        console.log('❌ Message not for current chat, not adding to view')
       }
 
       // Play sound notification for direct message (only if not from current user)
