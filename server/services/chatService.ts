@@ -57,12 +57,22 @@ export class ChatService {
     `).get(result.id);
 
     // Broadcast the message only to the two users involved
+    console.log('🔔 ChatService: sendMessage - broadcasting message:', {
+      messageId: fullMessage.id,
+      senderId,
+      otherUserId,
+      hasCallback: !!this.broadcastCallback
+    });
+    
     if (this.broadcastCallback) {
       this.broadcastCallback({
         type: 'new_message',
         message: fullMessage,
         targetUsers: [senderId, otherUserId]
       });
+      console.log('✅ ChatService: broadcast callback called successfully');
+    } else {
+      console.log('❌ ChatService: no broadcast callback set!');
     }
 
     return fullMessage;

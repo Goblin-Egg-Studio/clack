@@ -397,13 +397,26 @@ const wsClients = new Set<any>();
 
 // Helper function to broadcast to specific users using JSON patch format
 function broadcastToUsers(userIds: number[], data: any) {
+  console.log('📡 Server: broadcastToUsers called:', {
+    userIds,
+    dataType: data.type,
+    messageId: data.message?.id,
+    sseClientsCount: sseClients.size
+  });
+  
   const patch = createJSONPatch(data);
   const message = `data: ${JSON.stringify(patch)}\n\n`;
+  
+  console.log('📦 Server: created patch:', patch);
+  
   sseClients.forEach((userInfo, client) => {
     if (userIds.includes(userInfo.userId)) {
+      console.log('📤 Server: sending to user', userInfo.userId);
       try {
         client.write(message);
+        console.log('✅ Server: message sent successfully to user', userInfo.userId);
       } catch (error) {
+        console.log('❌ Server: failed to send to user', userInfo.userId, error);
         // Remove dead connections
         sseClients.delete(client);
       }
