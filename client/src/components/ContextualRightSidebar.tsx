@@ -123,38 +123,43 @@ export function ContextualRightSidebar() {
     const chatUser = users.find(u => u.username === username)
     
     return (
-      <div className="w-80 bg-gray-50 border-l border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">User Profile</h3>
+      <div className="w-96 bg-white border-l border-gray-200 flex flex-col shadow-lg">
+        <div className="p-6 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-xl font-bold text-gray-900">User Profile</h3>
         </div>
         
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-6">
           {chatUser ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-lg font-medium text-white">
+            <div className="space-y-6">
+              {/* User Avatar and Name */}
+              <div className="flex items-center space-x-4">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <span className="text-2xl font-bold text-white">
                     {chatUser.username.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900">{chatUser.username}</h4>
-                  <p className="text-sm text-gray-500">Active User</p>
+                  <h4 className="text-2xl font-bold text-gray-900">{chatUser.username}</h4>
+                  <p className="text-sm text-gray-500 font-medium">Active User</p>
                 </div>
               </div>
               
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Joined:</span>
-                  <span className="font-medium text-gray-900">{new Date(chatUser.created_at).toLocaleDateString()}</span>
+              {/* User Details */}
+              <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-gray-600 font-medium">Joined:</span>
+                  <span className="font-semibold text-gray-900">{new Date(chatUser.created_at).toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className="font-medium text-green-600">Online</span>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-gray-600 font-medium">Status:</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    Online
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">User ID:</span>
-                  <span className="font-medium text-gray-900">{chatUser.id}</span>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-gray-600 font-medium">User ID:</span>
+                  <span className="font-mono text-sm font-semibold text-gray-700 bg-gray-200 px-2 py-1 rounded">{chatUser.id}</span>
                 </div>
               </div>
             </div>
