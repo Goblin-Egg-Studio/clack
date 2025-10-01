@@ -139,13 +139,23 @@ export function ContextualRightSidebar() {
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-gray-900">{chatUser.username}</h4>
-                  <p className="text-sm text-gray-600">User ID: {chatUser.id}</p>
+                  <p className="text-sm text-gray-500">Active User</p>
                 </div>
               </div>
               
-              <div className="space-y-2 text-sm text-gray-600">
-                <div>Joined: {new Date(chatUser.created_at).toLocaleDateString()}</div>
-                <div>Status: Online</div>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Joined:</span>
+                  <span className="font-medium text-gray-900">{new Date(chatUser.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium text-green-600">Online</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">User ID:</span>
+                  <span className="font-medium text-gray-900">{chatUser.id}</span>
+                </div>
               </div>
             </div>
           ) : (
