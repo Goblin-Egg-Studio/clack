@@ -36,6 +36,13 @@ export function ProfilePage() {
           <div className="px-6 py-6">
             {currentUser ? (
               <div className="space-y-6">
+                {/* Debug info */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <h4 className="text-sm font-medium text-yellow-800 mb-2">Debug Info</h4>
+                  <pre className="text-xs text-yellow-700 overflow-auto">
+                    {JSON.stringify(currentUser, null, 2)}
+                  </pre>
+                </div>
                 {/* Display Name */}
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
@@ -73,6 +80,29 @@ export function ProfilePage() {
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Role */}
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex items-center space-x-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Role
+                    </label>
+                    {currentUser.is_admin ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Admin
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        User
+                      </span>
+                    )}
+                  </div>
+                  {currentUser.is_admin && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      You have administrative privileges and can delete users from the Users page.
+                    </p>
+                  )}
                 </div>
 
               </div>

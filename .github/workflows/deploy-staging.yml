@@ -1,0 +1,28 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch: # Allow manual deployment
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Staging Server
+        env:
+          LINODE_API_TOKEN: ${{ secrets.LINODE_API_TOKEN }}
+          LINODE_STAGING_INSTANCE_ID: ${{ secrets.LINODE_STAGING_INSTANCE_ID }}
+        run: |
+          echo "🚀 Deploying staging branch to staging server..."
+          curl -s -H "Authorization: Bearer ${LINODE_API_TOKEN}" -X POST \
+            "https://api.linode.com/v4/linode/instances/${LINODE_STAGING_INSTANCE_ID}/reboot"
+          echo "⏳ Waiting for staging instance to come back..."
+          sleep 45
+          echo "🔎 Checking staging version endpoint..."
+          STAGING_IP=$(curl -s -H "Authorization: Bearer ${LINODE_API_TOKEN}" \
+            "https://api.linode.com/v4/linode/instances/${LINODE_STAGING_INSTANCE_ID}" | jq -r '.ipv4[0]')
+          curl -s "http://${STAGING_IP}/__version" || true
+          echo "✅ Staging deployment complete!"

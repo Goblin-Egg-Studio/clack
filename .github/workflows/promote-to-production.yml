@@ -1,0 +1,32 @@
+name: Promote Staging to Production
+
+on:
+  workflow_dispatch: # Manual trigger only
+    inputs:
+      confirm_promotion:
+        description: 'Type "PROMOTE" to confirm staging to production promotion'
+        required: true
+        default: ''
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm_promotion == 'PROMOTE'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge staging into main
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout main
+          git merge staging --no-ff -m "Promote staging to production"
+          git push origin main
+          echo "✅ Staging successfully promoted to production!"
+
+      - name: Notify deployment
+        run: |
+          echo "🚀 Staging has been promoted to production!"
+          echo "📦 Production deployment will be triggered automatically"

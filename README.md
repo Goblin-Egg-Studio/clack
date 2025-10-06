@@ -26,6 +26,32 @@ A modern real-time chat application built with Bun, React, and SQLite. Features 
 - Bun installed
 - Linux/macOS/Windows
 
+## 🔄 Staging & Production Workflow
+
+### Staging Environment
+- **Branch**: `staging`
+- **Purpose**: Test new features before production
+- **Deployment**: Automatic on push to `staging` branch
+- **URL**: Staging server (configured via `LINODE_STAGING_INSTANCE_ID`)
+
+### Production Environment
+- **Branch**: `main`
+- **Purpose**: Stable production releases
+- **Deployment**: Automatic on push to `main` branch
+- **URL**: Production server (configured via `LINODE_INSTANCE_ID`)
+
+### Workflow Process
+1. **Develop on staging branch**: Make changes and push to `staging`
+2. **Test on staging server**: Verify features work correctly
+3. **Promote to production**: Use GitHub Actions "Promote Staging to Production" workflow
+4. **Automatic deployment**: Production deploys automatically after promotion
+
+### Manual Promotion
+1. Go to GitHub Actions → "Promote Staging to Production"
+2. Click "Run workflow"
+3. Type "PROMOTE" in the confirmation field
+4. Click "Run workflow" to merge staging into main
+
 ### Local Development
 
 ```bash
