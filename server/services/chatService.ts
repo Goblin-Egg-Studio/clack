@@ -14,6 +14,7 @@ export interface Message {
 export interface User {
   id: number;
   username: string;
+  is_admin: boolean;
   created_at: string;
 }
 
@@ -111,13 +112,13 @@ export class ChatService {
 
   // Get all users
   async getUsers(): Promise<User[]> {
-    const users = this.db.query('SELECT id, username, created_at FROM users ORDER BY created_at DESC').all();
+    const users = this.db.query('SELECT id, username, is_admin, created_at FROM users ORDER BY created_at DESC').all();
     return users;
   }
 
   // Lookup helpers
   async getUserByUsername(username: string): Promise<User | null> {
-    const user = this.db.query('SELECT id, username, created_at FROM users WHERE username = ?').get(username);
+    const user = this.db.query('SELECT id, username, is_admin, created_at FROM users WHERE username = ?').get(username);
     return user || null;
   }
 
@@ -134,7 +135,7 @@ export class ChatService {
 
   // Get a specific user by ID
   async getUserById(userId: number): Promise<User | null> {
-    const user = this.db.query('SELECT id, username, created_at FROM users WHERE id = ?').get(userId);
+    const user = this.db.query('SELECT id, username, is_admin, created_at FROM users WHERE id = ?').get(userId);
     return user || null;
   }
 
@@ -315,7 +316,7 @@ export class ChatService {
   // Time range getters
   async getUsersByTimeRange(startTime: string, endTime: string): Promise<User[]> {
     const users = this.db.query(`
-      SELECT id, username, created_at 
+      SELECT id, username, is_admin, created_at 
       FROM users 
       WHERE created_at BETWEEN ? AND ? 
       ORDER BY created_at ASC
@@ -368,7 +369,7 @@ export class ChatService {
   // Index range getters
   async getUsersByIndexRange(startIndex: number, endIndex: number): Promise<User[]> {
     const users = this.db.query(`
-      SELECT id, username, created_at 
+      SELECT id, username, is_admin, created_at 
       FROM users 
       ORDER BY created_at ASC
       LIMIT ? OFFSET ?
@@ -545,6 +546,53 @@ export class ChatService {
     return {
       success: true,
       message: 'Room deleted successfully'
+    };
+  }
+
+  // Admin-only user deletion
+  async deleteUser(userId: number, adminId: number): Promise<any> {
+    // Verify admin
+    const admin = this.db.query(`
+      SELECT is_admin FROM users WHERE id = ?
+    `).get(adminId);
+
+    if (!admin || !admin.is_admin) {
+      throw new Error('Only admins can delete users');
+    }
+
+    // Verify user exists
+    const user = this.db.query(`
+      SELECT id, username FROM users WHERE id = ?
+    `).get(userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Prevent admin from deleting themselves
+    if (userId === adminId) {
+      throw new Error('Admins cannot delete themselves');
+    }
+
+    // Delete user and all related data
+    this.db.query(`DELETE FROM messages WHERE user_a = ? OR user_b = ? OR sender_id = ?`).run(userId, userId, userId);
+    this.db.query(`DELETE FROM room_members WHERE user_id = ?`).run(userId);
+    this.db.query(`DELETE FROM rooms WHERE created_by = ?`).run(userId);
+    this.db.query(`DELETE FROM users WHERE id = ?`).run(userId);
+
+    // Broadcast user deletion
+    if (this.broadcastCallback) {
+      this.broadcastCallback({
+        type: 'user_deleted',
+        userId: userId,
+        username: user.username,
+        deletedBy: adminId
+      });
+    }
+
+    return {
+      success: true,
+      message: `User ${user.username} deleted successfully`
     };
   }
 }

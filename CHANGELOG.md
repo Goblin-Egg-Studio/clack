@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.33 - Admin user system implementation
+
+### Added
+- **Admin Users**: Added `is_admin` boolean field to users table for role-based access control
+- **User Deletion**: Admins can now delete users from the /users page with proper security validation
+- **Role Display**: User roles (Admin/User) are displayed with color-coded badges in the users table
+- **Security**: Only admins can delete users; admins cannot delete themselves
+- **MCP Tools**: Added `delete_user` MCP tool with authentication and authorization checks
+- **Cascading Deletion**: Deleting a user removes all related data (messages, rooms, memberships)
+
+### Changed
+- **Database Schema**: Updated users table to include `is_admin` field
+- **Frontend**: Updated UsersPage to show role badges and admin-only delete buttons
+- **Backend**: Enhanced ChatService with admin verification and user deletion methods
+- **Security**: Added proper authentication checks for admin-only operations
+
 ## 0.6.27 - Server-side message filtering implementation
 
 ### Fixed

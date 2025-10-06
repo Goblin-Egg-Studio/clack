@@ -167,6 +167,18 @@ export function createChatTools(db: Database): MCPTool[] {
         },
         required: ['roomId', 'ownerId']
       }
+    },
+    {
+      name: 'delete_user',
+      description: 'Delete a user (only admins can do this)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          userId: { type: 'number', description: 'User ID to delete' },
+          adminId: { type: 'number', description: 'Admin user ID (for verification)' }
+        },
+        required: ['userId', 'adminId']
+      }
     }
   ];
 }
@@ -530,6 +542,22 @@ export async function executeToolByName(
           }
           
           return await provider.deleteRoom(roomId, ownerId);
+        }
+
+        case 'delete_user': {
+          const { userId, adminId } = toolArgs;
+          const authenticatedUserId = headers.userId;
+          
+          if (!userId || !adminId) {
+            throw new Error('userId and adminId are required');
+          }
+          
+          // Security: Only allow the authenticated admin to delete users
+          if (!authenticatedUserId || authenticatedUserId !== adminId) {
+            throw new Error('Unauthorized: Only the authenticated admin can delete users');
+          }
+          
+          return await provider.deleteUser(userId, adminId);
         }
 
         default:

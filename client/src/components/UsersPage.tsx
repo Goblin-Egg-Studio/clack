@@ -13,6 +13,7 @@ export function UsersPage() {
   })
   const [isRegistering, setIsRegistering] = useState(false)
   const [registrationError, setRegistrationError] = useState('')
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null)
 
   const handleStartChat = (user: any) => {
     navigate(`/chat/${user.username}`)
@@ -50,6 +51,54 @@ export function UsersPage() {
       ...prev,
       [name]: value
     }))
+  }
+
+  const handleDeleteUser = async (userId: number) => {
+    if (!currentUser?.is_admin) {
+      alert('Only admins can delete users')
+      return
+    }
+
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return
+    }
+
+    setDeletingUserId(userId)
+    try {
+      // Call the MCP delete_user tool
+      const response = await fetch('/api/mcp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name: 'delete_user',
+            arguments: {
+              userId: userId,
+              adminId: currentUser.id
+            }
+          }
+        })
+      })
+
+      const result = await response.json()
+      if (result.error) {
+        throw new Error(result.error.message || 'Failed to delete user')
+      }
+
+      // Refresh the users list
+      await refreshUsers()
+      alert('User deleted successfully')
+    } catch (error: any) {
+      alert(`Failed to delete user: ${error.message}`)
+    } finally {
+      setDeletingUserId(null)
+    }
   }
 
   return (
@@ -141,10 +190,13 @@ export function UsersPage() {
                       User
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Joined
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -171,15 +223,37 @@ export function UsersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {user.is_admin ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Admin
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            User
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleStartChat(user)}
-                          className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-md transition-colors"
-                        >
-                          Start Chat
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleStartChat(user)}
+                            className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-md transition-colors"
+                          >
+                            Start Chat
+                          </button>
+                          {currentUser?.is_admin && (
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={deletingUserId === user.id}
+                              className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md transition-colors disabled:opacity-50"
+                            >
+                              {deletingUserId === user.id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

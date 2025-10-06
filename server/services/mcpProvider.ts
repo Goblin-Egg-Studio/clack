@@ -20,6 +20,7 @@ export interface MCPProvider {
   getUserRooms(userId: number): Promise<any>;
   changeRoomOwner(roomId: number, newOwnerId: number, currentOwnerId: number): Promise<any>;
   deleteRoom(roomId: number, ownerId: number): Promise<any>;
+  deleteUser(userId: number, adminId: number): Promise<any>;
 }
 
 export class ChatMCPProvider implements MCPProvider {
@@ -161,6 +162,14 @@ export class ChatMCPProvider implements MCPProvider {
 
   async deleteRoom(roomId: number, ownerId: number): Promise<any> {
     const result = await this.chatService.deleteRoom(roomId, ownerId);
+    return {
+      success: true,
+      ...result
+    };
+  }
+
+  async deleteUser(userId: number, adminId: number): Promise<any> {
+    const result = await this.chatService.deleteUser(userId, adminId);
     return {
       success: true,
       ...result

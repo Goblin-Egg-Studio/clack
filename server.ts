@@ -154,8 +154,19 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
+`);
+
+// Add is_admin column to existing users table if it doesn't exist
+db.exec(`
+  ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE
+`);
+
+// Make brooswit an admin
+db.exec(`
+  UPDATE users SET is_admin = TRUE WHERE username = 'brooswit'
 `);
 
 db.exec(`
