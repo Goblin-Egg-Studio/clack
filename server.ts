@@ -160,9 +160,12 @@ db.exec(`
 `);
 
 // Add is_admin column to existing users table if it doesn't exist
-db.exec(`
-  ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE
-`);
+try {
+  db.exec(`ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE`);
+} catch (error) {
+  // Column already exists, ignore error
+  console.log('is_admin column already exists, skipping...');
+}
 
 // Make brooswit an admin
 db.exec(`
