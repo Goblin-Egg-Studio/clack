@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.34 - Fix message line break preservation
+
+### Fixed
+- **Message Display**: Fixed message content display to preserve line breaks and formatting
+- **ChatView**: Added `whitespace-pre-wrap` CSS class to preserve line breaks in direct messages
+- **RoomChatView**: Added `whitespace-pre-wrap` CSS class to preserve line breaks in room messages
+- **UX**: Messages now display with proper line breaks instead of appearing on single lines
+
 ## 0.6.33 - Admin user system implementation
 
 ### Added

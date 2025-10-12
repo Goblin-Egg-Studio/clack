@@ -161,7 +161,7 @@ export function ChatView() {
                       {new Date(msg.created_at).toLocaleTimeString()}
                     </span>
                   </div>
-                  <p className="text-gray-800">{msg.content}</p>
+                  <p className="text-gray-800 whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             </div>
